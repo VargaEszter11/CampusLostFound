@@ -1,75 +1,60 @@
-# React + TypeScript + Vite
+# Campus Lost & Found
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Egyetemi elveszett tárgyak rendszere: bejelentheted, ha elvesztettél vagy találtál valamit, és kereshetsz a nyitott bejelentések között, hogy megtaláld a párját.
 
-Currently, two official plugins are available:
+## Állapot
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Első frontend MVP. A négy tervezett use case közül kettőt fed le:
 
-## React Compiler
+- **Tárgy bejelentése** — kész
+- **Bejelentés keresése** — kész
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Még nincs megvalósítva (következő lépések):
 
-## Expanding the ESLint configuration
+- **Igénylés** — egy felhasználó igényt nyújt be egy egyező bejelentésre
+- **Átadás jóváhagyása** — egy admin/megtaláló jóváhagyja az átadást és generálódik egy átadási kód
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Backend egyelőre nincs. A bejelentések a böngésző `localStorage`-ában tárolódnak, tehát az adatok nem szinkronizálódnak böngészők/eszközök között, és elvesznek, ha törlik a webhely adatait.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Technológiák
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- React + TypeScript + Vite
+- Tailwind CSS
+- Backend (tervezett): Java + Spring
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Domain modell
 
+- **Tárgy (Item)** — a fizikai tárgy (név, leírás, kategória)
+- **Bejelentés (Report)** — egy elveszett vagy megtalált bejelentés, amely egy Tárgyra hivatkozik
+- **Igénylés (Claim)** — igény egy nyitott bejelentésre (tervezett)
+- **Átadás (Handover)** — egy tárgy jóváhagyott átadása az igénylőnek (tervezett)
+
+Value objectek: `ItemId` (Tárgyazonosító), `HandoverCode` (Átadási kód).
+
+A teljes típusdefiníciókért lásd: [src/domain/types.ts](src/domain/types.ts).
+
+## Indítás
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Nyisd meg a kiírt helyi URL-t a böngésződben.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scriptek
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `npm run dev` — fejlesztői szerver indítása
+- `npm run build` — típusellenőrzés és production build
+- `npm run preview` — production build helyi előnézete
+- `npm run lint` — ESLint futtatása
 
+## Projekt struktúra
+
+```
+src/
+  domain/       Entitás és value object típusok, kategórialista
+  storage/      localStorage-alapú bejelentés-perzisztencia
+  components/   ReportForm, ReportList, ReportDetailsModal
+  App.tsx       Fül navigáció (Bejelentés / Nyitott bejelentések)
 ```
