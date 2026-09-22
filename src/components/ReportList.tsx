@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import type { Report, ReportType } from '../domain/types'
 import { ReportDetailsModal } from './ReportDetailsModal'
+import { getClaimsForReport } from '../storage/claimStore'
+import { isSameUser } from '../storage/authStore'
 
 interface Props {
   readonly reports: Report[]
   readonly filter: ReportType | 'ALL'
   readonly onFilterChange: (filter: ReportType | 'ALL') => void
+  readonly onReportChanged?: () => void
+  readonly currentUser: string
 }
 
 const FILTER_LABELS: Record<ReportType | 'ALL', string> = {
@@ -22,7 +26,7 @@ function matchesSearch(r: Report, search: string): boolean {
     .some((field) => field.toLowerCase().includes(term))
 }
 
-export function ReportList({ reports, filter, onFilterChange }: Props) {
+export function ReportList({ reports, filter, onFilterChange, onReportChanged, currentUser }: Props) {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Report | null>(null)
 
@@ -91,18 +95,36 @@ export function ReportList({ reports, filter, onFilterChange }: Props) {
                     {r.type === 'LOST' ? 'Lost' : 'Found'}
                   </span>
                 </div>
-                {r.item.category && (
-                  <span className="mt-1 inline-block rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-gray-400">
-                    {r.item.category}
-                  </span>
-                )}
+                <div className="mt-1 flex items-center gap-2">
+                  {r.item.category && (
+                    <span className="inline-block rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-gray-400">
+                      {r.item.category}
+                    </span>
+                  )}
+                  {isSameUser(currentUser, r.reporterName) &&
+                    (() => {
+                      const pending = getClaimsForReport(r.id).filter((c) => c.status === 'PENDING').length
+                      return pending > 0 ? (
+                        <span className="inline-block rounded-full bg-blue-500/20 px-2 py-0.5 text-xs font-medium text-blue-300">
+                          {pending} {pending === 1 ? 'claim' : 'claims'} pending
+                        </span>
+                      ) : null
+                    })()}
+                </div>
               </button>
             </li>
           ))}
         </ul>
       )}
 
-      {selected && <ReportDetailsModal report={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ReportDetailsModal
+          report={selected}
+          onClose={() => setSelected(null)}
+          onReportChanged={onReportChanged}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   )
 }

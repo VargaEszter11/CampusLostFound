@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import type { ReportType } from '../domain/types'
 import { CATEGORIES } from '../domain/categories'
+import { contactError } from '../domain/contactValidation'
 import { createReport } from '../storage/reportStore'
+import { DatePicker } from './DatePicker'
+import { FieldError } from './FieldError'
 
 interface Props {
+  readonly reporterName: string
   readonly onCreated: () => void
 }
 
@@ -11,20 +15,51 @@ const inputClass =
   'w-full rounded-lg border border-white/10 bg-neutral-800/60 px-3 py-2 text-white placeholder-gray-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20'
 const labelClass = 'mb-1 block text-xs font-medium text-gray-400'
 
-export function ReportForm({ onCreated }: Props) {
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+export function ReportForm({ reporterName, onCreated }: Props) {
   const [type, setType] = useState<ReportType>('LOST')
   const [itemName, setItemName] = useState('')
+  const [itemNameErrorMsg, setItemNameErrorMsg] = useState<string>()
   const [itemDescription, setItemDescription] = useState('')
   const [itemCategory, setItemCategory] = useState<string>(CATEGORIES[0])
   const [location, setLocation] = useState('')
+  const [locationErrorMsg, setLocationErrorMsg] = useState<string>()
   const [date, setDate] = useState('')
-  const [reporterName, setReporterName] = useState('')
+  const [dateErrorMsg, setDateErrorMsg] = useState<string>()
   const [reporterContact, setReporterContact] = useState('')
+  const [contactErrorMsg, setContactErrorMsg] = useState<string>()
 
   return (
     <form
+      noValidate
       onSubmit={(e) => {
         e.preventDefault()
+
+        if (itemName.trim() === '') {
+          setItemNameErrorMsg('Item name is required')
+          return
+        }
+        if (location.trim() === '') {
+          setLocationErrorMsg('Location is required')
+          return
+        }
+        if (date === '') {
+          setDateErrorMsg('Date is required')
+          return
+        }
+        if (date > todayIso()) {
+          setDateErrorMsg('Date cannot be in the future')
+          return
+        }
+        const error = contactError(reporterContact)
+        if (error) {
+          setContactErrorMsg(error)
+          return
+        }
+
         createReport({
           type,
           itemName,
@@ -36,12 +71,15 @@ export function ReportForm({ onCreated }: Props) {
           reporterContact,
         })
         setItemName('')
+        setItemNameErrorMsg(undefined)
         setItemDescription('')
         setItemCategory(CATEGORIES[0])
         setLocation('')
+        setLocationErrorMsg(undefined)
         setDate('')
-        setReporterName('')
+        setDateErrorMsg(undefined)
         setReporterContact('')
+        setContactErrorMsg(undefined)
         onCreated()
       }}
       className="space-y-5"
@@ -79,12 +117,16 @@ export function ReportForm({ onCreated }: Props) {
         </label>
         <input
           id="itemName"
-          required
           value={itemName}
-          onChange={(e) => setItemName(e.target.value)}
+          onChange={(e) => {
+            setItemName(e.target.value)
+            if (itemNameErrorMsg) setItemNameErrorMsg(undefined)
+          }}
           placeholder="e.g. Blue keychain"
+          aria-invalid={itemNameErrorMsg ? true : undefined}
           className={inputClass}
         />
+        <FieldError message={itemNameErrorMsg} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -109,14 +151,17 @@ export function ReportForm({ onCreated }: Props) {
           <label htmlFor="date" className={labelClass}>
             Date
           </label>
-          <input
+          <DatePicker
             id="date"
-            required
-            type="date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={`${inputClass} scheme-dark`}
+            max={todayIso()}
+            onChange={(v) => {
+              setDate(v)
+              if (dateErrorMsg) setDateErrorMsg(undefined)
+            }}
+            ariaInvalid={Boolean(dateErrorMsg)}
           />
+          <FieldError message={dateErrorMsg} />
         </div>
       </div>
 
@@ -140,12 +185,16 @@ export function ReportForm({ onCreated }: Props) {
         </label>
         <input
           id="location"
-          required
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          onChange={(e) => {
+            setLocation(e.target.value)
+            if (locationErrorMsg) setLocationErrorMsg(undefined)
+          }}
           placeholder="e.g. Main hall, library"
+          aria-invalid={locationErrorMsg ? true : undefined}
           className={inputClass}
         />
+        <FieldError message={locationErrorMsg} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -155,11 +204,9 @@ export function ReportForm({ onCreated }: Props) {
           </label>
           <input
             id="reporterName"
-            required
+            disabled
             value={reporterName}
-            onChange={(e) => setReporterName(e.target.value)}
-            placeholder="Full name"
-            className={inputClass}
+            className={`${inputClass} cursor-not-allowed opacity-60`}
           />
         </div>
         <div>
@@ -168,12 +215,16 @@ export function ReportForm({ onCreated }: Props) {
           </label>
           <input
             id="reporterContact"
-            required
             value={reporterContact}
-            onChange={(e) => setReporterContact(e.target.value)}
+            onChange={(e) => {
+              setReporterContact(e.target.value)
+              if (contactErrorMsg) setContactErrorMsg(undefined)
+            }}
             placeholder="email or phone"
+            aria-invalid={contactErrorMsg ? true : undefined}
             className={inputClass}
           />
+          <FieldError message={contactErrorMsg} />
         </div>
       </div>
 
