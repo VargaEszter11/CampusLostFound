@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: campus-lostfound
+
+  datasource:
+    # Override with env vars for cloud DBs (Neon, etc.):
+    #   SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
+    url: jdbc:postgresql://localhost:5432/campus_lost_found
+    username: campus
+    password: campus
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # Schema was applied once via psql; baseline so Boot does not re-run V1/V2.
+    # Remove these two lines on a fresh empty database if you prefer Flyway-only setup.
+    baseline-on-migrate: true
+    baseline-version: "2"
+
+server:
+  port: 8080

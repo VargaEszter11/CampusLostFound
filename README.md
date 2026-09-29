@@ -4,63 +4,79 @@ Egyetemi elveszett tárgyak rendszere: bejelentheted, ha elvesztettél vagy tal�
 
 ## Állapot
 
-Frontend MVP, mind a négy tervezett use case megvalósítva:
+A négy fő use case API + PostgreSQL mögött fut:
 
 - **Tárgy bejelentése** — kész
-- **Bejelentés keresése** — kész
+- **Bejelentés keresése** — kész (All / Lost / Found / My reports)
 - **Igénylés** — kész
-- **Átadás jóváhagyása** — kész
+- **Átadás jóváhagyása** — kész (Handovers fül is)
 
-Backend egyelőre nincs; helyette egy egyszerű, mock bejelentkezés van (csak név megadása, jelszó nélkül), ami eldönti, ki a bejelentés tulajdonosa. Az adatok a böngésző `localStorage`-ában tárolódnak, tehát nem szinkronizálódnak böngészők/eszközök között, és elvesznek, ha törlik a webhely adatait. Első betöltéskor néhány minta bejelentés automatikusan létrejön, hogy ne kelljen üres állapotból indulni.
+A bejelentkezés még mock (csak név). Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.md](docs/todo.md).
 
 ### Hozzáférés-szabályok
 
-- Egy bejelentés `Igénylés` listáját és a jóváhagyás/elutasítás gombokat csak a bejelentés tulajdonosa látja.
+- Egy bejelentés igényléslistáját és a jóváhagyás/elutasítás gombokat csak a bejelentés tulajdonosa látja.
 - A bejelentő elérhetősége (`reporterContact`) rejtve marad az igénylők elől, amíg egy igénylés jóváhagyásra nem kerül.
-- A jóváhagyás és az átadás két külön lépés: jóváhagyáskor a rendszer generál egy `Handover` átadási kódot, felfedi a bejelentő és az igénylő elérhetőségét egymás előtt, és a többi függő igénylést automatikusan elutasítja — de a bejelentés még nyitva marad. Csak az explicit „Mark as handed over” lépés zárja le (`CLOSED`) a bejelentést, ez jelöli a tárgyat ténylegesen átadottnak.
-- Egy tárgy csak egyszer adható át: amíg egy jóváhagyott igénylés átadásra vár, új igénylés nem nyújtható be ugyanarra a bejelentésre.
+- A jóváhagyás és az átadás két külön lépés: jóváhagyáskor a rendszer generál egy `Handover` átadási kódot, felfedi a felek elérhetőségét, és a többi függő igénylést elutasítja — a bejelentés még nyitva marad. Csak a megerősítés zárja le (`CLOSED`).
+- All / Lost / Found csak mások nyitott bejelentéseit listázza; a sajátok a **My reports** szűrőn jelennek meg.
+- Amíg egy jóváhagyott igénylés átadásra vár, új igénylés nem nyújtható be ugyanarra a bejelentésre.
 
-Mivel a bejelentkezés mock (nincs jelszó, nincs szerver oldali ellenőrzés), ez csak a felületen tiltja le a jogosulatlan műveleteket — a `localStorage`/store függvények közvetlen hívásával megkerülhető. Valódi jogosultságkezeléshez backend szükséges.
+Mivel a bejelentkezés mock (nincs jelszó, nincs szerver oldali ellenőrzés), a felületi tiltások megkerülhetők. Valódi jogosultságkezeléshez backend auth szükséges.
 
 ## Technológiák
 
-- React + TypeScript + Vite
-- Tailwind CSS
-- Backend (tervezett): Java + Spring
+- Frontend: React + TypeScript + Vite + Tailwind CSS
+- Backend: Java 21 + Spring Boot + JPA + Flyway
+- Adatbázis: PostgreSQL (helyi telepítés vagy Neon — Docker nem kell)
 
 ## Domain modell
 
-- **Tárgy (Item)** — a fizikai tárgy (név, leírás, kategória)
-- **Bejelentés (Report)** — egy elveszett vagy megtalált bejelentés, amely egy Tárgyra hivatkozik
-- **Igénylés (Claim)** — igény egy nyitott bejelentésre
-- **Átadás (Handover)** — egy tárgy jóváhagyott átadása az igénylőnek
+- **User** — bejelentő / igénylő (email, később jelszó)
+- **Item** — a fizikai tárgy (név, leírás, kategória)
+- **Report** — elveszett vagy megtalált bejelentés
+- **Claim** — igény egy nyitott bejelentésre
+- **Handover** — jóváhagyott átadás átadási kóddal
 
-Value objectek: `ItemId` (Tárgyazonosító), `HandoverCode` (Átadási kód).
-
-A teljes típusdefiníciókért lásd: [src/domain/types.ts](src/domain/types.ts).
+Típusok: [frontend/src/domain/types.ts](frontend/src/domain/types.ts).  
+Séma: [backend/src/main/resources/db/migration/V1__init.sql](backend/src/main/resources/db/migration/V1__init.sql).
 
 ## Indítás
 
+### 1. Adatbázis
+
+1. Telepíts PostgreSQL-t, vagy használj Neon projektet.
+2. Helyi DB: `psql -U postgres -f backend/create-db.sql`
+
+### 2. Backend
+
+```powershell
+cd backend
+.\run.ps1
+```
+
+Részletek és API: [backend/README.md](backend/README.md).
+
+### 3. Frontend
+
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Nyisd meg a kiírt helyi URL-t a böngésződben, és jelentkezz be egy tetszőleges névvel (vagy válassz a demó felhasználók közül).
+A Vite dev szerver a `/api` hívásokat a `localhost:8080` backendre proxyzza.
 
-## Scriptek
+## Frontend scriptek (`frontend/`)
 
-- `npm run dev` — fejlesztői szerver indítása
+- `npm run dev` — fejlesztői szerver
 - `npm run build` — típusellenőrzés és production build
-- `npm run preview` — production build helyi előnézete
-- `npm run lint` — ESLint futtatása
+- `npm run preview` — production build előnézete
+- `npm run lint` — ESLint
 
 ## Projekt struktúra
 
 ```
-src/
-  domain/       Entitás és value object típusok, kategórialista, kontakt-validáció
-  storage/      localStorage-alapú perzisztencia (bejelentések, igénylések/átadások, mock munkamenet)
-  components/   ReportForm, ReportList, ReportDetailsModal, ClaimForm, LoginScreen, DatePicker, FieldError
-  App.tsx       Bejelentkezés + fül navigáció (Bejelentés / Nyitott bejelentések)
+frontend/   React + Vite app
+backend/    Spring Boot + Flyway + JPA (+ create-db.sql)
+docs/       MVP leírás és todo
 ```
