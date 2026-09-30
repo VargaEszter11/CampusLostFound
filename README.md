@@ -7,7 +7,7 @@ Egyetemi elveszett tárgyak rendszere: bejelentheted, ha elvesztettél vagy tal�
 A négy fő use case API + PostgreSQL mögött fut:
 
 - **Tárgy bejelentése** — kész
-- **Bejelentés keresése** — kész (All / Lost / Found / My reports)
+- **Bejelentés keresése** — kész (All / Lost / Found / My reports + kategória + dátumtartomány)
 - **Igénylés** — kész
 - **Átadás jóváhagyása** — kész (Handovers fül is)
 - **Bejelentkezés** — kész (e-mail + jelszó, Google Sign-In, JWT)
@@ -20,7 +20,7 @@ Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.m
 - Egy bejelentés igényléslistáját és a jóváhagyás/elutasítás gombokat csak a bejelentés tulajdonosa látja.
 - A bejelentő elérhetősége (`reporterContact`) rejtve marad az igénylők elől, amíg egy igénylés jóváhagyásra nem kerül.
 - A jóváhagyás és az átadás két külön lépés: jóváhagyáskor a rendszer generál egy `Handover` átadási kódot, felfedi a felek elérhetőségét, és a többi függő igénylést elutasítja — a bejelentés még nyitva marad. Csak a megerősítés zárja le (`CLOSED`).
-- All / Lost / Found csak mások nyitott bejelentéseit listázza; a sajátok a **My reports** szűrőn jelennek meg.
+- All / Lost / Found csak mások nyitott bejelentéseit listázza; a sajátok a **My reports** szűrőn jelennek meg. Az Open reports oldalon kategória és dátumtartomány szerint is szűrhető a lista.
 - Amíg egy jóváhagyott igénylés átadásra vár, új igénylés nem nyújtható be ugyanarra a bejelentésre.
 - A szerver a JWT-ből azonosítja a felhasználót; a kliens nem küldhet más nevében bejelentést vagy igénylést.
 

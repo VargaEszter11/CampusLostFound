@@ -16,6 +16,8 @@
 - [x] add backend for login
 - [x] Google login
 - [x] add notifications for claims and accept/decline and handovers
+- [x] Open reports: filter by category and date range
+- [x] UI redesign (dark monochrome + teal)
 - [ ] LLM category suggestion
 - [ ] admin page for every lost/found item, past items too
 - [ ] tests

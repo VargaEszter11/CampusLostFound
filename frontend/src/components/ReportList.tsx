@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { Report, ReportType } from '../domain/types'
+import { CATEGORIES } from '../domain/categories'
 import { ReportDetailsModal } from './ReportDetailsModal'
+import { DatePicker } from './DatePicker'
 import { getClaimsForReport } from '../storage/claimStore'
 import { isSameUser } from '../storage/authStore'
 
 export type ReportFilter = ReportType | 'ALL' | 'MINE'
+type CategoryFilter = 'ALL' | (typeof CATEGORIES)[number]
 
 interface Props {
   readonly reports: Report[]
@@ -29,6 +32,10 @@ const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
   year: 'numeric',
 })
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
 
 function formatDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`)
@@ -91,8 +98,13 @@ export function ReportList({
   currentUserEmail,
 }: Props) {
   const [search, setSearch] = useState('')
+  const [category, setCategory] = useState<CategoryFilter>('ALL')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [selected, setSelected] = useState<Report | null>(null)
   const [pendingByReport, setPendingByReport] = useState<Record<string, number>>({})
+
+  const hasExtraFilters = category !== 'ALL' || dateFrom !== '' || dateTo !== ''
 
   useEffect(() => {
     let cancelled = false
@@ -128,14 +140,20 @@ export function ReportList({
       return filter === 'ALL' || r.type === filter
     })
     .filter((r) => matchesSearch(r, search))
+    .filter((r) => category === 'ALL' || r.item.category === category)
+    .filter((r) => {
+      if (dateFrom && r.date < dateFrom) return false
+      if (dateTo && r.date > dateTo) return false
+      return true
+    })
 
   const emptyMessage =
     filter === 'MINE'
       ? reports.some((r) => isSameUser(currentUser, r.reporterName))
-        ? 'No reports match your search.'
+        ? 'No reports match your filters.'
         : 'You have no open reports.'
       : reports.some((r) => !isSameUser(currentUser, r.reporterName))
-        ? 'No reports match your search.'
+        ? 'No reports match your filters.'
         : 'No open reports from others.'
 
   return (
@@ -171,6 +189,71 @@ export function ReportList({
           </button>
         ))}
       </div>
+
+      <div className="mb-4 mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div>
+          <label htmlFor="filterCategory" className="field-label">
+            Category
+          </label>
+          <select
+            id="filterCategory"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as CategoryFilter)}
+            className="field-input"
+          >
+            <option value="ALL">All categories</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="filterDateFrom" className="field-label">
+            From date
+          </label>
+          <DatePicker
+            id="filterDateFrom"
+            value={dateFrom}
+            max={dateTo || todayIso()}
+            onChange={(v) => {
+              setDateFrom(v)
+              if (dateTo && v && v > dateTo) setDateTo(v)
+            }}
+          />
+        </div>
+        <div>
+          <label htmlFor="filterDateTo" className="field-label">
+            To date
+          </label>
+          <DatePicker
+            id="filterDateTo"
+            value={dateTo}
+            max={todayIso()}
+            onChange={(v) => {
+              setDateTo(v)
+              if (dateFrom && v && v < dateFrom) setDateFrom(v)
+            }}
+          />
+        </div>
+      </div>
+
+      {hasExtraFilters && (
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => {
+              setCategory('ALL')
+              setDateFrom('')
+              setDateTo('')
+            }}
+            className="text-xs font-medium text-teal hover:underline"
+          >
+            Clear category & date filters
+          </button>
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="mt-6 text-ink-faint">{emptyMessage}</p>
