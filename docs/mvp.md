@@ -6,7 +6,7 @@ A Campus Lost & Found egy egyetemi elveszett tárgyak rendszer, amelynek célja,
 
 ## A jelenlegi MVP funkciói
 
-- bejelentkezés egy néven keresztül (mock, jelszó nélkül); demó felhasználók: Anna Kiss, Bence Tóth, Csenge Nagy;
+- bejelentkezés e-mail + jelszóval (JWT) vagy Google Sign-In-nel; új fiók regisztrációja; azonos e-mailnél a Google fiók összekapcsolódik a meglévő felhasználóval; demó felhasználók: Anna Kiss, Bence Tóth, Csenge Nagy (jelszó: `demo123`);
 - új bejelentés létrehozása „Elveszett” vagy „Megtalált” típussal;
 - a tárgy nevének, kategóriájának, leírásának, helyszínének és dátumának megadása (a dátum csak a mai nap vagy korábbi lehet);
 - a bejelentő neve a bejelentkezett felhasználóhoz van rögzítve, csak az elérhetőséget kell megadni;
@@ -21,11 +21,12 @@ A Campus Lost & Found egy egyetemi elveszett tárgyak rendszer, amelynek célja,
 - **My claims** nézet: a felhasználó saját benyújtott igénylései, státusszal (Pending/Approved/Rejected); jóváhagyás után itt is megjelenik a bejelentő elérhetősége és az átadási kód;
 - **Handovers** nézet: a felhasználót érintő átadások (bejelentőként vagy igénylőként), átadási kóddal és megerősítéssel;
 - mezőszintű validáció: kötelező mezők, e-mail-cím vagy telefonszám formátum, jövőbeli dátum tiltása;
-- adatok a Spring Boot API-n / PostgreSQL-en keresztül mentődnek (nem `localStorage`).
+- adatok a Spring Boot API-n / PostgreSQL-en keresztül mentődnek (nem `localStorage`);
+- védett API: a műveletek a JWT-ből azonosított felhasználóhoz kötődnek (nem kliens által küldött névhez).
 
 ## Fő felületi elemek
 
-Belépéskor egy bejelentkező képernyő jelenik meg, ahol tetszőleges névvel vagy egy demó felhasználó gyors-választásával lehet folytatni. Bejelentkezés után a főoldalon négy fül van: **Report**, **Open reports**, **My claims** és **Handovers**.
+Belépéskor egy bejelentkező képernyő jelenik meg (Sign in / Register, plusz Continue with Google ha a Client ID be van állítva). Demó felhasználó gombok kitöltik az e-mailt és a jelszót. Bejelentkezés után a főoldalon négy fül van: **Report**, **Open reports**, **My claims** és **Handovers**.
 
 A **Report** fülön egy űrlap jelenik meg (Elveszett/Megtalált váltó, tárgy adatai, dátumválasztó, bejelentő neve/elérhetősége). Beküldés után az alkalmazás átvált az Open reports fülre.
 
@@ -36,9 +37,9 @@ A **My claims** fülön a felhasználó saját igényléseit követheti. A **Han
 ## Használt technológiák
 
 - Frontend: React, TypeScript, Vite, Tailwind CSS
-- Backend: Java 21, Spring Boot, JPA, Flyway
+- Backend: Java 21, Spring Boot, Spring Security, JWT, JPA, Flyway
 - Adatbázis: PostgreSQL
 
 ## Jelenlegi korlátok
 
-A bejelentkezés még mock: nincs jelszó, nincs szerver oldali auth. A felületen tiltott műveletek API-szinten jelenleg nincsenek felhasználóhoz kötve (név alapján azonosít a kliens) — valódi jogosultságkezeléshez backend login szükséges. Nincs értesítés, admin nézet, LLM kategória-javaslat, sem automatizált tesztek.
+Nincs e-mail-ellenőrzés, jelszó-visszaállítás, refresh token, OAuth, értesítés, admin nézet, LLM kategória-javaslat, sem automatizált tesztek.

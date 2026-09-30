@@ -13,7 +13,8 @@
 - [x] mark item claimed/found
 - [x] claimed/found items page (My claims + Handovers)
 - [x] My reports filter (own reports separate from Lost/Found)
-- [ ] add backend for login
+- [x] add backend for login
+- [x] Google login
 - [ ] add notifications for claims and accept/decline
 - [ ] LLM category suggestion
 - [ ] admin page for every lost/found item, past items too

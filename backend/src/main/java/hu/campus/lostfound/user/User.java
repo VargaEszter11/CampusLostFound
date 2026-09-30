@@ -23,6 +23,9 @@ public class User {
     @Column(name = "password_hash")
     private String passwordHash;
 
+    @Column(name = "google_sub")
+    private String googleSub;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -52,11 +55,23 @@ public class User {
         return passwordHash;
     }
 
+    public String getGoogleSub() {
+        return googleSub;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public void setGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 }

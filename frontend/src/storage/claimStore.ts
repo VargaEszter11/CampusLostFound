@@ -1,9 +1,8 @@
 import type { Claim, ClaimStatus, Handover, HandoverCode } from '../domain/types'
-import { apiUrl, throwIfNotOk } from '../api/http'
+import { apiFetch, throwIfNotOk } from '../api/http'
 
 export interface NewClaimInput {
   reportId: string
-  claimantName: string
   claimantContact: string
   reason?: string
 }
@@ -47,34 +46,31 @@ function mapHandover(dto: ApiHandover): Handover {
 }
 
 export async function getClaimsForReport(reportId: string): Promise<Claim[]> {
-  const res = await fetch(apiUrl(`/api/reports/${reportId}/claims`))
+  const res = await apiFetch(`/api/reports/${reportId}/claims`)
   await throwIfNotOk(res)
   const data = (await res.json()) as ApiClaim[]
   return data.map(mapClaim)
 }
 
-export async function getClaimsByClaimant(claimantName: string): Promise<Claim[]> {
-  const params = new URLSearchParams({ claimantName })
-  const res = await fetch(apiUrl(`/api/claims?${params}`))
+export async function getMyClaims(): Promise<Claim[]> {
+  const res = await apiFetch('/api/claims')
   await throwIfNotOk(res)
   const data = (await res.json()) as ApiClaim[]
   return data.map(mapClaim)
 }
 
 export async function getHandoverForReport(reportId: string): Promise<Handover | undefined> {
-  const res = await fetch(apiUrl(`/api/reports/${reportId}/handover`))
+  const res = await apiFetch(`/api/reports/${reportId}/handover`)
   if (res.status === 404) return undefined
   await throwIfNotOk(res)
   return mapHandover((await res.json()) as ApiHandover)
 }
 
 export async function createClaim(input: NewClaimInput): Promise<Claim> {
-  const res = await fetch(apiUrl('/api/claims'), {
+  const res = await apiFetch('/api/claims', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       reportId: input.reportId,
-      claimantName: input.claimantName,
       claimantContact: input.claimantContact,
       reason: input.reason,
     }),
@@ -84,19 +80,19 @@ export async function createClaim(input: NewClaimInput): Promise<Claim> {
 }
 
 export async function approveClaim(claimId: string): Promise<Handover> {
-  const res = await fetch(apiUrl(`/api/claims/${claimId}/approve`), { method: 'POST' })
+  const res = await apiFetch(`/api/claims/${claimId}/approve`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapHandover((await res.json()) as ApiHandover)
 }
 
 export async function rejectClaim(claimId: string): Promise<Claim> {
-  const res = await fetch(apiUrl(`/api/claims/${claimId}/reject`), { method: 'POST' })
+  const res = await apiFetch(`/api/claims/${claimId}/reject`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapClaim((await res.json()) as ApiClaim)
 }
 
 export async function confirmHandover(reportId: string): Promise<Handover> {
-  const res = await fetch(apiUrl(`/api/reports/${reportId}/handover/confirm`), { method: 'POST' })
+  const res = await apiFetch(`/api/reports/${reportId}/handover/confirm`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapHandover((await res.json()) as ApiHandover)
 }

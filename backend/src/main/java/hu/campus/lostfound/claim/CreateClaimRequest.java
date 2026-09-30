@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public record CreateClaimRequest(
         @NotNull UUID reportId,
-        @NotBlank @Size(max = 255) String claimantName,
         @NotBlank @Size(max = 255) String claimantContact,
         @Size(max = 4000) String reason
 ) {

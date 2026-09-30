@@ -5,18 +5,32 @@ import { LoginScreen } from './components/LoginScreen'
 import { MyClaims } from './components/MyClaims'
 import { MyHandovers } from './components/MyHandovers'
 import { getOpenReports } from './storage/reportStore'
-import { clearCurrentUser, getCurrentUser, isSameUser } from './storage/authStore'
+import {
+  clearSession,
+  getSession,
+  isSameUser,
+  type AuthSession,
+} from './storage/authStore'
+import { AUTH_EXPIRED_EVENT } from './api/http'
 import type { Report } from './domain/types'
 
 type Tab = 'REPORT' | 'OPEN_REPORTS' | 'MY_CLAIMS' | 'HANDOVERS'
 
 function App() {
-  const [currentUser, setCurrentUserState] = useState(() => getCurrentUser())
+  const [session, setSessionState] = useState<AuthSession | null>(() => getSession())
   const [tab, setTab] = useState<Tab>('REPORT')
   const [openReports, setOpenReports] = useState<Report[]>([])
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState<string>()
   const [filter, setFilter] = useState<ReportFilter>('ALL')
+
+  const currentUser = session?.displayName ?? null
+
+  useEffect(() => {
+    const onExpired = () => setSessionState(null)
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired)
+  }, [])
 
   const refresh = useCallback(async () => {
     setReportsLoading(true)
@@ -24,6 +38,10 @@ function App() {
     try {
       setOpenReports(await getOpenReports())
     } catch (err) {
+      if (!getSession()) {
+        setSessionState(null)
+        return
+      }
       setReportsError(err instanceof Error ? err.message : 'Failed to load reports')
     } finally {
       setReportsLoading(false)
@@ -31,13 +49,13 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (currentUser) {
+    if (session) {
       void refresh()
     }
-  }, [currentUser, refresh])
+  }, [session, refresh])
 
-  if (!currentUser) {
-    return <LoginScreen onLogin={setCurrentUserState} />
+  if (!session || !currentUser) {
+    return <LoginScreen onLogin={setSessionState} />
   }
 
   const otherOpenCount = openReports.filter((r) => !isSameUser(currentUser, r.reporterName)).length
@@ -67,12 +85,12 @@ function App() {
             </span>
             <button
               onClick={() => {
-                clearCurrentUser()
-                setCurrentUserState(null)
+                clearSession()
+                setSessionState(null)
               }}
               className="text-gray-400 underline-offset-2 hover:text-white hover:underline"
             >
-              Switch user
+              Sign out
             </button>
           </div>
         </div>
@@ -165,14 +183,14 @@ function App() {
         {tab === 'MY_CLAIMS' && (
           <div className="mt-8">
             <h2 className="mb-4 text-xl font-bold text-white">My claims</h2>
-            <MyClaims currentUser={currentUser} />
+            <MyClaims />
           </div>
         )}
 
         {tab === 'HANDOVERS' && (
           <div className="mt-8">
             <h2 className="mb-4 text-xl font-bold text-white">Handovers</h2>
-            <MyHandovers currentUser={currentUser} />
+            <MyHandovers />
           </div>
         )}
       </div>

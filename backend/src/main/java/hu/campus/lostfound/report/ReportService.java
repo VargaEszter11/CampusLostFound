@@ -1,8 +1,10 @@
 package hu.campus.lostfound.report;
 
+import hu.campus.lostfound.auth.AuthSupport;
 import hu.campus.lostfound.report.Item;
 import hu.campus.lostfound.report.Report;
 import hu.campus.lostfound.report.ReportStatus;
+import hu.campus.lostfound.shared.ForbiddenException;
 import hu.campus.lostfound.shared.NotFoundException;
 import hu.campus.lostfound.user.User;
 import hu.campus.lostfound.user.UserService;
@@ -18,15 +20,18 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final ItemRepository itemRepository;
     private final UserService userService;
+    private final AuthSupport authSupport;
 
     public ReportService(
             ReportRepository reportRepository,
             ItemRepository itemRepository,
-            UserService userService
+            UserService userService,
+            AuthSupport authSupport
     ) {
         this.reportRepository = reportRepository;
         this.itemRepository = itemRepository;
         this.userService = userService;
+        this.authSupport = authSupport;
     }
 
     @Transactional(readOnly = true)
@@ -51,11 +56,8 @@ public class ReportService {
     @Transactional
     public ReportResponse create(CreateReportRequest request) {
         userService.validateContact(request.reporterContact());
+        User reporter = authSupport.requireUser();
 
-        User reporter = userService.resolveOrCreate(
-                request.reporterName().trim(),
-                request.reporterContact().trim()
-        );
         Item item = new Item(
                 UUID.randomUUID(),
                 request.itemName().trim(),
@@ -82,6 +84,10 @@ public class ReportService {
     @Transactional
     public ReportResponse close(UUID id) {
         Report report = requireReport(id);
+        User current = authSupport.requireUser();
+        if (!report.getReporter().getId().equals(current.getId())) {
+            throw new ForbiddenException("Only the reporter can close this report");
+        }
         if (report.getStatus() == ReportStatus.CLOSED) {
             return ReportMapper.toResponse(report);
         }

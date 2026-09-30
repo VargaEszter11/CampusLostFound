@@ -1,5 +1,5 @@
 import type { Handover, HandoverCode, ReportType } from '../domain/types'
-import { apiUrl, throwIfNotOk } from '../api/http'
+import { apiFetch, throwIfNotOk } from '../api/http'
 
 export interface HandoverListItem {
   id: string
@@ -69,16 +69,15 @@ function mapHandover(dto: ApiHandover): Handover {
   }
 }
 
-export async function getHandoversForParticipant(participantName: string): Promise<HandoverListItem[]> {
-  const params = new URLSearchParams({ participantName })
-  const res = await fetch(apiUrl(`/api/handovers?${params}`))
+export async function getMyHandovers(): Promise<HandoverListItem[]> {
+  const res = await apiFetch('/api/handovers')
   await throwIfNotOk(res)
   const data = (await res.json()) as ApiHandoverListItem[]
   return data.map(mapListItem)
 }
 
 export async function confirmHandoverById(handoverId: string): Promise<Handover> {
-  const res = await fetch(apiUrl(`/api/handovers/${handoverId}/confirm`), { method: 'POST' })
+  const res = await apiFetch(`/api/handovers/${handoverId}/confirm`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapHandover((await res.json()) as ApiHandover)
 }

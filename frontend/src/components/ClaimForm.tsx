@@ -31,7 +31,7 @@ export function ClaimForm({ reportId, reportType, claimantName, onSubmitted, onC
           setContactErrorMsg(error)
           return
         }
-        createClaim({ reportId, claimantName, claimantContact, reason: reason || undefined })
+        createClaim({ reportId, claimantContact, reason: reason || undefined })
           .then(() => onSubmitted())
           .catch((err: unknown) => {
             setContactErrorMsg(err instanceof Error ? err.message : 'Failed to submit claim')

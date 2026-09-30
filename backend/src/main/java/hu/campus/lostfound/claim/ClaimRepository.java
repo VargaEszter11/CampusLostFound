@@ -18,4 +18,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
     @EntityGraph(attributePaths = {"claimant", "report", "report.item"})
     List<Claim> findByClaimant_DisplayNameIgnoreCaseOrderByCreatedAtDesc(String displayName);
+
+    @EntityGraph(attributePaths = {"claimant", "report", "report.item"})
+    List<Claim> findByClaimant_IdOrderByCreatedAtDesc(UUID claimantId);
 }

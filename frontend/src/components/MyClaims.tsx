@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Claim, Handover, Report } from '../domain/types'
-import { getClaimsByClaimant, getHandoverForReport } from '../storage/claimStore'
+import { getHandoverForReport, getMyClaims } from '../storage/claimStore'
 import { getReport } from '../storage/reportStore'
-
-interface Props {
-  readonly currentUser: string
-}
 
 interface ClaimRow {
   readonly claim: Claim
@@ -19,7 +15,7 @@ const STATUS_STYLES: Record<Claim['status'], string> = {
   REJECTED: 'bg-red-500/20 text-red-300',
 }
 
-export function MyClaims({ currentUser }: Props) {
+export function MyClaims() {
   const [rows, setRows] = useState<ClaimRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
@@ -29,7 +25,7 @@ export function MyClaims({ currentUser }: Props) {
     setLoading(true)
     setError(undefined)
 
-    void getClaimsByClaimant(currentUser)
+    void getMyClaims()
       .then(async (claims) => {
         const results = await Promise.all(
           claims.map(async (claim): Promise<ClaimRow | null> => {
@@ -56,7 +52,7 @@ export function MyClaims({ currentUser }: Props) {
     return () => {
       cancelled = true
     }
-  }, [currentUser])
+  }, [])
 
   if (loading) {
     return <p className="text-gray-500">Loading claims…</p>

@@ -1,5 +1,5 @@
 import type { ItemId, Report, ReportStatus, ReportType } from '../domain/types'
-import { apiUrl, throwIfNotOk } from '../api/http'
+import { apiFetch, throwIfNotOk } from '../api/http'
 
 export interface NewReportInput {
   type: ReportType
@@ -8,7 +8,6 @@ export interface NewReportInput {
   itemCategory?: string
   location: string
   date: string
-  reporterName: string
   reporterContact: string
 }
 
@@ -52,7 +51,7 @@ function mapReport(dto: ApiReport): Report {
 
 export async function getReports(status?: ReportStatus): Promise<Report[]> {
   const query = status ? `?status=${status}` : ''
-  const res = await fetch(apiUrl(`/api/reports${query}`))
+  const res = await apiFetch(`/api/reports${query}`)
   await throwIfNotOk(res)
   const data = (await res.json()) as ApiReport[]
   return data.map(mapReport)
@@ -63,16 +62,15 @@ export async function getOpenReports(): Promise<Report[]> {
 }
 
 export async function getReport(reportId: string): Promise<Report | undefined> {
-  const res = await fetch(apiUrl(`/api/reports/${reportId}`))
+  const res = await apiFetch(`/api/reports/${reportId}`)
   if (res.status === 404) return undefined
   await throwIfNotOk(res)
   return mapReport((await res.json()) as ApiReport)
 }
 
 export async function createReport(input: NewReportInput): Promise<Report> {
-  const res = await fetch(apiUrl('/api/reports'), {
+  const res = await apiFetch('/api/reports', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       type: input.type,
       itemName: input.itemName,
@@ -80,7 +78,6 @@ export async function createReport(input: NewReportInput): Promise<Report> {
       itemCategory: input.itemCategory,
       location: input.location,
       date: input.date,
-      reporterName: input.reporterName,
       reporterContact: input.reporterContact,
     }),
   })
@@ -89,7 +86,7 @@ export async function createReport(input: NewReportInput): Promise<Report> {
 }
 
 export async function closeReport(reportId: string): Promise<Report> {
-  const res = await fetch(apiUrl(`/api/reports/${reportId}/close`), { method: 'POST' })
+  const res = await apiFetch(`/api/reports/${reportId}/close`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapReport((await res.json()) as ApiReport)
 }

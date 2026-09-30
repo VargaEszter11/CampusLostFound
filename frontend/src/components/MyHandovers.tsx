@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   confirmHandoverById,
-  getHandoversForParticipant,
+  getMyHandovers,
   type HandoverListItem,
 } from '../storage/handoverStore'
 
-interface Props {
-  readonly currentUser: string
-}
-
-export function MyHandovers({ currentUser }: Props) {
+export function MyHandovers() {
   const [items, setItems] = useState<HandoverListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
@@ -19,13 +15,13 @@ export function MyHandovers({ currentUser }: Props) {
     setLoading(true)
     setError(undefined)
     try {
-      setItems(await getHandoversForParticipant(currentUser))
+      setItems(await getMyHandovers())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load handovers')
     } finally {
       setLoading(false)
     }
-  }, [currentUser])
+  }, [])
 
   useEffect(() => {
     void load()

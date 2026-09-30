@@ -28,3 +28,13 @@ spring:
 
 server:
   port: 8080
+
+app:
+  jwt:
+    # Override in production: APP_JWT_SECRET (min 32 chars)
+    secret: ${APP_JWT_SECRET:campus-lostfound-dev-jwt-secret-change-me}
+    expiration-ms: 86400000
+  google:
+    # Web OAuth client ID from Google Cloud Console (same as VITE_GOOGLE_CLIENT_ID)
+    # Set via env GOOGLE_CLIENT_ID — do not put the ID in this file (YAML breaks on ":")
+    client-id: ${GOOGLE_CLIENT_ID:}

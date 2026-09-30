@@ -14,7 +14,6 @@ public record CreateReportRequest(
         @Size(max = 100) String itemCategory,
         @NotBlank @Size(max = 255) String location,
         @NotNull @PastOrPresent LocalDate date,
-        @NotBlank @Size(max = 255) String reporterName,
         @NotBlank @Size(max = 255) String reporterContact
 ) {
 }

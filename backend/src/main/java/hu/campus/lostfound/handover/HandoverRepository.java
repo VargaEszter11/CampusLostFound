@@ -38,6 +38,18 @@ public interface HandoverRepository extends JpaRepository<Handover, UUID> {
             """)
     List<Handover> findByParticipantNameIgnoreCase(@Param("name") String name);
 
+    @Query("""
+            select h from Handover h
+            join fetch h.claim c
+            join fetch c.claimant cl
+            join fetch c.report r
+            join fetch r.item
+            join fetch r.reporter
+            where cl.id = :userId or r.reporter.id = :userId
+            order by c.createdAt desc
+            """)
+    List<Handover> findByParticipantId(@Param("userId") UUID userId);
+
     @Override
     @EntityGraph(attributePaths = {"claim", "claim.claimant", "claim.report", "claim.report.item", "claim.report.reporter"})
     Optional<Handover> findById(UUID id);

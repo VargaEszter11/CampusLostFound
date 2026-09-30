@@ -71,7 +71,6 @@ export function ReportForm({ reporterName, onCreated }: Props) {
           itemCategory,
           location,
           date,
-          reporterName,
           reporterContact,
         })
           .then(() => {
