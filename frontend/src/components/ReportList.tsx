@@ -12,6 +12,7 @@ interface Props {
   readonly onFilterChange: (filter: ReportFilter) => void
   readonly onReportChanged?: () => void
   readonly currentUser: string
+  readonly currentUserEmail?: string
 }
 
 const FILTER_OPTIONS: ReportFilter[] = ['ALL', 'LOST', 'FOUND', 'MINE']
@@ -75,7 +76,14 @@ function ReportRow({
   )
 }
 
-export function ReportList({ reports, filter, onFilterChange, onReportChanged, currentUser }: Props) {
+export function ReportList({
+  reports,
+  filter,
+  onFilterChange,
+  onReportChanged,
+  currentUser,
+  currentUserEmail,
+}: Props) {
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Report | null>(null)
   const [pendingByReport, setPendingByReport] = useState<Record<string, number>>({})
@@ -182,6 +190,7 @@ export function ReportList({ reports, filter, onFilterChange, onReportChanged, c
           onClose={() => setSelected(null)}
           onReportChanged={onReportChanged}
           currentUser={currentUser}
+          currentUserEmail={currentUserEmail}
         />
       )}
     </div>

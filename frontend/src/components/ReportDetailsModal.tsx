@@ -16,9 +16,16 @@ interface Props {
   readonly onClose: () => void
   readonly onReportChanged?: () => void
   readonly currentUser: string
+  readonly currentUserEmail?: string
 }
 
-export function ReportDetailsModal({ report, onClose, onReportChanged, currentUser }: Props) {
+export function ReportDetailsModal({
+  report,
+  onClose,
+  onReportChanged,
+  currentUser,
+  currentUserEmail,
+}: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const closingProgrammatically = useRef(false)
   const onReportChangedRef = useRef(onReportChanged)
@@ -237,6 +244,7 @@ export function ReportDetailsModal({ report, onClose, onReportChanged, currentUs
               reportId={report.id}
               reportType={report.type}
               claimantName={currentUser}
+              defaultContact={currentUserEmail}
               onSubmitted={() => {
                 setShowClaimForm(false)
                 void refreshAfterChange()

@@ -64,7 +64,7 @@ function App() {
   const headerCount = filter === 'MINE' ? myOpenCount : otherOpenCount
 
   return (
-    <div className="relative min-h-screen bg-neutral-950">
+    <div className="relative min-h-screen overflow-x-hidden bg-neutral-950">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-white/5 blur-3xl"
@@ -81,12 +81,6 @@ function App() {
             <span className="truncate">Lost & Found reporting portal</span>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <NotificationBell
-              onNavigate={(next) => {
-                setTab(next)
-                if (next === 'OPEN_REPORTS') void refresh()
-              }}
-            />
             <span className="hidden sm:inline">
               Signed in as <span className="font-medium text-gray-200">{currentUser}</span>
             </span>
@@ -102,7 +96,15 @@ function App() {
           </div>
         </div>
 
-        <h1 className="mb-3 text-5xl font-bold text-white">Lost & Found</h1>
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <h1 className="text-5xl font-bold text-white">Lost & Found</h1>
+          <NotificationBell
+            onNavigate={(next) => {
+              setTab(next)
+              if (next === 'OPEN_REPORTS') void refresh()
+            }}
+          />
+        </div>
 
         <div className="mt-8 flex flex-wrap gap-6 border-b border-white/10">
           <button
@@ -154,6 +156,7 @@ function App() {
           <div className="mt-8 rounded-2xl border border-white/10 bg-neutral-900/60 p-6 shadow-xl backdrop-blur">
             <ReportForm
               reporterName={currentUser}
+              defaultContact={session.email}
               onCreated={() => {
                 void refresh()
                 setTab('OPEN_REPORTS')
@@ -182,6 +185,7 @@ function App() {
                   void refresh()
                 }}
                 currentUser={currentUser}
+                currentUserEmail={session.email}
               />
             )}
           </div>

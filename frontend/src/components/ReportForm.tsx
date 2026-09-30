@@ -8,6 +8,7 @@ import { FieldError } from './FieldError'
 
 interface Props {
   readonly reporterName: string
+  readonly defaultContact?: string
   readonly onCreated: () => void
 }
 
@@ -19,7 +20,7 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-export function ReportForm({ reporterName, onCreated }: Props) {
+export function ReportForm({ reporterName, defaultContact = '', onCreated }: Props) {
   const [type, setType] = useState<ReportType>('LOST')
   const [itemName, setItemName] = useState('')
   const [itemNameErrorMsg, setItemNameErrorMsg] = useState<string>()
@@ -29,7 +30,7 @@ export function ReportForm({ reporterName, onCreated }: Props) {
   const [locationErrorMsg, setLocationErrorMsg] = useState<string>()
   const [date, setDate] = useState('')
   const [dateErrorMsg, setDateErrorMsg] = useState<string>()
-  const [reporterContact, setReporterContact] = useState('')
+  const [reporterContact, setReporterContact] = useState(defaultContact)
   const [contactErrorMsg, setContactErrorMsg] = useState<string>()
   const [submitError, setSubmitError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
@@ -82,7 +83,7 @@ export function ReportForm({ reporterName, onCreated }: Props) {
             setLocationErrorMsg(undefined)
             setDate('')
             setDateErrorMsg(undefined)
-            setReporterContact('')
+            setReporterContact(defaultContact)
             setContactErrorMsg(undefined)
             onCreated()
           })

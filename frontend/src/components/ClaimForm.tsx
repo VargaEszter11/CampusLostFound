@@ -8,6 +8,7 @@ interface Props {
   readonly reportId: string
   readonly reportType: ReportType
   readonly claimantName: string
+  readonly defaultContact?: string
   readonly onSubmitted: () => void
   readonly onCancel: () => void
 }
@@ -16,8 +17,15 @@ const inputClass =
   'w-full rounded-lg border border-white/10 bg-neutral-800/60 px-3 py-2 text-white placeholder-gray-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20'
 const labelClass = 'mb-1 block text-xs font-medium text-gray-400'
 
-export function ClaimForm({ reportId, reportType, claimantName, onSubmitted, onCancel }: Props) {
-  const [claimantContact, setClaimantContact] = useState('')
+export function ClaimForm({
+  reportId,
+  reportType,
+  claimantName,
+  defaultContact = '',
+  onSubmitted,
+  onCancel,
+}: Props) {
+  const [claimantContact, setClaimantContact] = useState(defaultContact)
   const [reason, setReason] = useState('')
   const [contactErrorMsg, setContactErrorMsg] = useState<string>()
 
