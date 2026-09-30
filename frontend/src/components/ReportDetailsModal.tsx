@@ -19,6 +19,18 @@ interface Props {
   readonly currentUserEmail?: string
 }
 
+const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+})
+
+function formatDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  return DATE_FORMAT.format(d)
+}
+
 export function ReportDetailsModal({
   report,
   onClose,
@@ -101,65 +113,73 @@ export function ReportDetailsModal({
       onClick={(e) => {
         if (e.target === dialogRef.current) handleClose()
       }}
-      className="fixed inset-0 m-auto w-full max-w-lg rounded-2xl border border-white/10 bg-neutral-900 p-8 text-white backdrop:bg-black/70"
+      className="fixed inset-0 m-auto w-full max-w-lg rounded-2xl border border-line bg-surface p-8 text-ink shadow-xl backdrop:bg-black/70"
     >
-      <div className="flex items-start justify-between">
-        <h3 className="text-2xl font-bold text-white">{report.item.name}</h3>
-        <button onClick={onClose} aria-label="Close" className="text-xl text-gray-400 hover:text-white">
+      <div className="flex items-start justify-between gap-4">
+        <h3 className="brand-display text-2xl text-ink">{report.item.name}</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="text-lg text-ink-faint hover:text-ink"
+        >
           ✕
         </button>
       </div>
 
-      <div className="mt-3 flex gap-2">
-        <span
-          className={
-            report.type === 'LOST'
-              ? 'rounded-full bg-red-500/20 px-3 py-1.5 text-sm font-medium text-red-300'
-              : 'rounded-full bg-green-500/20 px-3 py-1.5 text-sm font-medium text-green-300'
-          }
-        >
+      <div className="mt-3 flex flex-wrap gap-2">
+        <span className={report.type === 'LOST' ? 'badge-lost' : 'badge-found'}>
           {report.type === 'LOST' ? 'Lost' : 'Found'}
         </span>
-        {report.item.category && (
-          <span className="rounded-full bg-neutral-800 px-3 py-1.5 text-sm text-gray-300">
-            {report.item.category}
-          </span>
-        )}
+        {report.item.category && <span className="chip">{report.item.category}</span>}
       </div>
 
       {report.item.description && (
-        <p className="mt-5 text-base text-gray-300">{report.item.description}</p>
+        <p className="mt-5 text-base text-ink-muted">{report.item.description}</p>
       )}
 
-      <div className="mt-5 space-y-2 border-t border-white/10 pt-5">
-        <p className="text-base text-gray-400">📍 {report.location}</p>
-        <p className="text-base text-gray-400">📅 {report.date}</p>
-        <p className="text-base text-gray-400">👤 {report.reporterName}</p>
-        {handover || isOwner ? (
-          <p className="text-base text-gray-400">✉️ {report.reporterContact}</p>
-        ) : (
-          <p className="text-base text-gray-500 italic">
-            ✉️ Contact hidden until a claim is approved
-          </p>
-        )}
-      </div>
+      <dl className="mt-5 space-y-2 border-t border-line pt-5 text-sm">
+        <div className="flex justify-between gap-4">
+          <dt className="text-ink-faint">Location</dt>
+          <dd className="text-right font-medium text-ink">{report.location}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-ink-faint">Date</dt>
+          <dd className="text-right font-medium text-ink">{formatDate(report.date)}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-ink-faint">Reporter</dt>
+          <dd className="text-right font-medium text-ink">{report.reporterName}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-ink-faint">Contact</dt>
+          <dd className="text-right font-medium text-ink">
+            {handover || isOwner ? (
+              report.reporterContact
+            ) : (
+              <span className="font-normal text-ink-faint italic">Hidden until a claim is approved</span>
+            )}
+          </dd>
+        </div>
+      </dl>
 
-      {actionError && <p className="mt-4 text-sm text-red-300">{actionError}</p>}
-      {loading && <p className="mt-4 text-sm text-gray-500">Loading claims…</p>}
+      {actionError && <p className="mt-4 text-sm text-danger">{actionError}</p>}
+      {loading && <p className="mt-4 text-sm text-ink-faint">Loading claims…</p>}
 
       {handover && !handover.confirmed && (
-        <div className="mt-5 space-y-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+        <div className="info-callout mt-5 space-y-3">
           <div>
-            <p className="text-sm font-semibold text-blue-300">Claim approved — contact info shared</p>
-            <p className="mt-1 text-sm text-blue-200">
+            <p className="text-sm font-semibold">Claim approved — contact info shared</p>
+            <p className="mt-1 text-sm">
               Handover code: <span className="font-mono font-semibold">{handover.handoverCode}</span>
             </p>
           </div>
           {isOwner && approvedClaim && (
-            <p className="text-sm text-blue-200">✉️ {approvedClaim.claimantContact}</p>
+            <p className="text-sm">{approvedClaim.claimantContact}</p>
           )}
           {isOwner && (
             <button
+              type="button"
               onClick={() => {
                 void confirmHandover(report.id)
                   .then(() => refreshAfterChange())
@@ -167,7 +187,7 @@ export function ReportDetailsModal({
                     setActionError(err instanceof Error ? err.message : 'Failed to confirm handover')
                   })
               }}
-              className="w-full rounded-xl bg-blue-500/20 py-2.5 text-sm font-semibold text-blue-200 hover:bg-blue-500/30"
+              className="btn-primary"
             >
               Mark as handed over
             </button>
@@ -176,35 +196,38 @@ export function ReportDetailsModal({
       )}
 
       {handover?.confirmed && (
-        <div className="mt-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <p className="text-sm font-semibold text-emerald-300">Claim approved — item handed over</p>
-          <p className="mt-1 text-sm text-emerald-200">
+        <div className="info-callout mt-5">
+          <p className="text-sm font-semibold">Claim approved — item handed over</p>
+          <p className="mt-1 text-sm">
             Handover code: <span className="font-mono font-semibold">{handover.handoverCode}</span>
           </p>
         </div>
       )}
 
       {!isClosed && !handover && isOwner && !loading && (
-        <div className="mt-5 border-t border-white/10 pt-5">
-          <h4 className="text-sm font-semibold text-white">Claims</h4>
+        <div className="mt-5 border-t border-line pt-5">
+          <h4 className="text-sm font-semibold text-ink">Claims</h4>
           {claims.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-500">No claims yet.</p>
+            <p className="mt-2 text-sm text-ink-faint">No claims yet.</p>
           ) : (
             <ul className="mt-2 space-y-2">
               {claims.map((c) => (
                 <li
                   key={c.id}
-                  className="flex items-center justify-between rounded-lg border border-white/10 bg-neutral-800/60 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-line bg-paper px-3 py-2"
                 >
                   <div>
-                    <p className="text-sm text-white">{c.claimantName}</p>
+                    <p className="text-sm font-medium text-ink">{c.claimantName}</p>
                     {c.status !== 'PENDING' && (
-                      <p className="text-xs text-gray-500">{c.status === 'APPROVED' ? 'Approved' : 'Rejected'}</p>
+                      <p className="text-xs text-ink-faint">
+                        {c.status === 'APPROVED' ? 'Approved' : 'Rejected'}
+                      </p>
                     )}
                   </div>
                   {c.status === 'PENDING' && (
                     <div className="flex gap-2">
                       <button
+                        type="button"
                         onClick={() => {
                           void approveClaim(c.id)
                             .then(() => refreshAfterChange())
@@ -212,11 +235,12 @@ export function ReportDetailsModal({
                               setActionError(err instanceof Error ? err.message : 'Failed to approve claim')
                             })
                         }}
-                        className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-300 hover:bg-emerald-500/30"
+                        className="rounded bg-teal-soft px-3 py-1 text-xs font-semibold text-teal hover:bg-mint"
                       >
                         Approve
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           void rejectClaim(c.id)
                             .then(() => refreshAfterChange())
@@ -224,7 +248,7 @@ export function ReportDetailsModal({
                               setActionError(err instanceof Error ? err.message : 'Failed to reject claim')
                             })
                         }}
-                        className="rounded-full bg-red-500/20 px-3 py-1 text-xs font-medium text-red-300 hover:bg-red-500/30"
+                        className="rounded bg-danger-soft px-3 py-1 text-xs font-semibold text-danger hover:opacity-80"
                       >
                         Reject
                       </button>
@@ -238,7 +262,7 @@ export function ReportDetailsModal({
       )}
 
       {!isClosed && !handover && !isOwner && !loading && (
-        <div className="mt-5 border-t border-white/10 pt-5">
+        <div className="mt-5 border-t border-line pt-5">
           {showClaimForm ? (
             <ClaimForm
               reportId={report.id}
@@ -252,10 +276,7 @@ export function ReportDetailsModal({
               onCancel={() => setShowClaimForm(false)}
             />
           ) : (
-            <button
-              onClick={() => setShowClaimForm(true)}
-              className="w-full rounded-xl border border-white/10 py-2.5 text-sm font-medium text-gray-300 hover:border-white/30 hover:text-white"
-            >
+            <button type="button" onClick={() => setShowClaimForm(true)} className="btn-secondary w-full">
               {report.type === 'FOUND' ? 'This is mine' : 'Found it'}
             </button>
           )}

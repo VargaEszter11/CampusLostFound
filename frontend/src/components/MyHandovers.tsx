@@ -29,16 +29,16 @@ export function MyHandovers() {
   }, [load])
 
   if (loading) {
-    return <p className="text-gray-500">Loading handovers…</p>
+    return <p className="text-ink-faint">Loading handovers…</p>
   }
 
   if (error) {
-    return <p className="text-sm text-red-300">{error}</p>
+    return <p className="text-sm text-danger">{error}</p>
   }
 
   if (items.length === 0) {
     return (
-      <p className="text-gray-500">
+      <p className="text-ink-faint">
         No handovers yet. Approve a claim on one of your reports to start a handover.
       </p>
     )
@@ -46,46 +46,54 @@ export function MyHandovers() {
 
   return (
     <div>
-      {actionError && <p className="mb-4 text-sm text-red-300">{actionError}</p>}
-      <ul className="space-y-3">
+      {actionError && <p className="mb-4 text-sm text-danger">{actionError}</p>}
+      <ul className="border-t border-line">
         {items.map((h) => (
-          <li key={h.id} className="rounded-xl border border-white/10 bg-neutral-900/60 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-semibold text-white">{h.itemName}</span>
-              <span
-                className={
-                  h.confirmed
-                    ? 'rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300'
-                    : 'rounded-full bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-300'
-                }
-              >
-                {h.confirmed ? 'Handed over' : 'Awaiting handover'}
-              </span>
+          <li key={h.id} className="border-b border-line py-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-ink">{h.itemName}</span>
+                  <span
+                    className={
+                      h.confirmed
+                        ? 'rounded px-2 py-0.5 text-xs font-semibold status-approved'
+                        : 'rounded px-2 py-0.5 text-xs font-semibold status-pending'
+                    }
+                  >
+                    {h.confirmed ? 'Handed over' : 'Awaiting handover'}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-ink-faint">
+                  {h.reportType === 'LOST' ? 'Lost' : 'Found'} · you are the{' '}
+                  {h.yourRole === 'REPORTER' ? 'reporter' : 'claimant'}
+                </p>
+              </div>
             </div>
 
-            <p className="mt-1 text-xs text-gray-500">
-              {h.reportType === 'LOST' ? 'Lost' : 'Found'} · you are the{' '}
-              {h.yourRole === 'REPORTER' ? 'reporter' : 'claimant'}
-            </p>
-
-            <div className="mt-3 space-y-1 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-              <p className="text-sm text-blue-200">
+            <div className="info-callout mt-3 space-y-1 text-sm">
+              <p>
                 Code: <span className="font-mono font-semibold">{h.handoverCode}</span>
               </p>
-              <p className="text-sm text-blue-200">
+              <p>
                 {h.yourRole === 'REPORTER' ? (
-                  <>Claimant: {h.claimantName} · ✉️ {h.claimantContact}</>
+                  <>
+                    Claimant: {h.claimantName} · {h.claimantContact}
+                  </>
                 ) : (
-                  <>Reporter: {h.reporterName} · ✉️ {h.reporterContact}</>
+                  <>
+                    Reporter: {h.reporterName} · {h.reporterContact}
+                  </>
                 )}
               </p>
               {h.confirmed && h.date && (
-                <p className="text-xs text-blue-300">Confirmed {new Date(h.date).toLocaleString()}</p>
+                <p className="text-xs opacity-80">Confirmed {new Date(h.date).toLocaleString()}</p>
               )}
             </div>
 
             {h.yourRole === 'REPORTER' && !h.confirmed && (
               <button
+                type="button"
                 onClick={() => {
                   setActionError(undefined)
                   void confirmHandoverById(h.id)
@@ -97,7 +105,7 @@ export function MyHandovers() {
                       setActionError(err instanceof Error ? err.message : 'Failed to confirm handover')
                     })
                 }}
-                className="mt-3 w-full rounded-xl bg-blue-500/20 py-2.5 text-sm font-semibold text-blue-200 hover:bg-blue-500/30"
+                className="btn-primary mt-3"
               >
                 Mark as handed over
               </button>

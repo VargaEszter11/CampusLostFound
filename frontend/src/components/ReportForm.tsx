@@ -12,10 +12,6 @@ interface Props {
   readonly onCreated: () => void
 }
 
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-neutral-800/60 px-3 py-2 text-white placeholder-gray-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20'
-const labelClass = 'mb-1 block text-xs font-medium text-gray-400'
-
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
@@ -96,16 +92,16 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
       }}
       className="space-y-5"
     >
-      <h2 className="text-xl font-bold text-white">Report an item</h2>
+      <h2 className="brand-display text-2xl text-ink">Report an item</h2>
 
-      <div className="flex rounded-full bg-neutral-800 p-1">
+      <div className="flex rounded-lg border border-line bg-paper p-1">
         <button
           type="button"
           onClick={() => setType('LOST')}
           className={
             type === 'LOST'
-              ? 'flex-1 rounded-full bg-white py-2 text-sm font-semibold text-neutral-900 transition'
-              : 'flex-1 rounded-full py-2 text-sm font-medium text-gray-400 transition hover:text-gray-200'
+              ? 'flex-1 rounded-md bg-ink py-2 text-sm font-semibold text-paper transition'
+              : 'flex-1 rounded-md py-2 text-sm font-medium text-ink-muted transition hover:text-ink'
           }
         >
           Lost
@@ -115,8 +111,8 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
           onClick={() => setType('FOUND')}
           className={
             type === 'FOUND'
-              ? 'flex-1 rounded-full bg-white py-2 text-sm font-semibold text-neutral-900 transition'
-              : 'flex-1 rounded-full py-2 text-sm font-medium text-gray-400 transition hover:text-gray-200'
+              ? 'flex-1 rounded-md bg-teal py-2 text-sm font-semibold text-paper transition'
+              : 'flex-1 rounded-md py-2 text-sm font-medium text-ink-muted transition hover:text-ink'
           }
         >
           Found
@@ -124,7 +120,7 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
       </div>
 
       <div>
-        <label htmlFor="itemName" className={labelClass}>
+        <label htmlFor="itemName" className="field-label">
           Item name
         </label>
         <input
@@ -136,31 +132,31 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
           }}
           placeholder="e.g. Blue keychain"
           aria-invalid={itemNameErrorMsg ? true : undefined}
-          className={inputClass}
+          className="field-input"
         />
         <FieldError message={itemNameErrorMsg} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="itemCategory" className={labelClass}>
+          <label htmlFor="itemCategory" className="field-label">
             Category
           </label>
           <select
             id="itemCategory"
             value={itemCategory}
             onChange={(e) => setItemCategory(e.target.value)}
-            className={inputClass}
+            className="field-input"
           >
             {CATEGORIES.map((c) => (
-              <option key={c} value={c} className="bg-neutral-900">
+              <option key={c} value={c}>
                 {c}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="date" className={labelClass}>
+          <label htmlFor="date" className="field-label">
             Date
           </label>
           <DatePicker
@@ -178,7 +174,7 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
       </div>
 
       <div>
-        <label htmlFor="itemDescription" className={labelClass}>
+        <label htmlFor="itemDescription" className="field-label">
           Description
         </label>
         <textarea
@@ -187,12 +183,12 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
           onChange={(e) => setItemDescription(e.target.value)}
           rows={2}
           placeholder="Distinguishing features, brand, color, etc."
-          className={inputClass}
+          className="field-input"
         />
       </div>
 
       <div>
-        <label htmlFor="location" className={labelClass}>
+        <label htmlFor="location" className="field-label">
           Location
         </label>
         <input
@@ -204,25 +200,20 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
           }}
           placeholder="e.g. Main hall, library"
           aria-invalid={locationErrorMsg ? true : undefined}
-          className={inputClass}
+          className="field-input"
         />
         <FieldError message={locationErrorMsg} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="reporterName" className={labelClass}>
+          <label htmlFor="reporterName" className="field-label">
             Reporter name
           </label>
-          <input
-            id="reporterName"
-            disabled
-            value={reporterName}
-            className={`${inputClass} cursor-not-allowed opacity-60`}
-          />
+          <input id="reporterName" disabled value={reporterName} className="field-input" />
         </div>
         <div>
-          <label htmlFor="reporterContact" className={labelClass}>
+          <label htmlFor="reporterContact" className="field-label">
             Contact
           </label>
           <input
@@ -234,17 +225,13 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
             }}
             placeholder="email or phone"
             aria-invalid={contactErrorMsg ? true : undefined}
-            className={inputClass}
+            className="field-input"
           />
           <FieldError message={contactErrorMsg} />
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full rounded-xl bg-linear-to-b from-white to-gray-200 py-3 font-semibold text-neutral-900 shadow-sm transition hover:from-gray-100 hover:to-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <button type="submit" disabled={submitting} className="btn-primary">
         {submitting ? 'Submitting…' : 'Submit report'}
       </button>
       <FieldError message={submitError} />

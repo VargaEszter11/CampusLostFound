@@ -9,10 +9,16 @@ interface ClaimRow {
   readonly handover?: Handover
 }
 
-const STATUS_STYLES: Record<Claim['status'], string> = {
-  PENDING: 'bg-yellow-500/20 text-yellow-300',
-  APPROVED: 'bg-emerald-500/20 text-emerald-300',
-  REJECTED: 'bg-red-500/20 text-red-300',
+const STATUS_CLASS: Record<Claim['status'], string> = {
+  PENDING: 'status-pending',
+  APPROVED: 'status-approved',
+  REJECTED: 'status-rejected',
+}
+
+const STATUS_LABEL: Record<Claim['status'], string> = {
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
 }
 
 export function MyClaims() {
@@ -55,38 +61,45 @@ export function MyClaims() {
   }, [])
 
   if (loading) {
-    return <p className="text-gray-500">Loading claims…</p>
+    return <p className="text-ink-faint">Loading claims…</p>
   }
 
   if (error) {
-    return <p className="text-sm text-red-300">{error}</p>
+    return <p className="text-sm text-danger">{error}</p>
   }
 
   if (rows.length === 0) {
-    return <p className="text-gray-500">You haven&apos;t submitted any claims yet.</p>
+    return <p className="text-ink-faint">You haven&apos;t submitted any claims yet.</p>
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="border-t border-line">
       {rows.map(({ claim, report, handover }) => (
-        <li key={claim.id} className="rounded-xl border border-white/10 bg-neutral-900/60 p-4">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-white">{report.item.name}</span>
-            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[claim.status]}`}>
-              {claim.status === 'PENDING' ? 'Pending' : claim.status === 'APPROVED' ? 'Approved' : 'Rejected'}
-            </span>
+        <li key={claim.id} className="border-b border-line py-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-ink">{report.item.name}</span>
+                <span
+                  className={`rounded px-2 py-0.5 text-xs font-semibold ${STATUS_CLASS[claim.status]}`}
+                >
+                  {STATUS_LABEL[claim.status]}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-ink-muted">{report.location}</p>
+              <p className="mt-0.5 text-xs text-ink-faint">
+                {report.type === 'LOST' ? 'Lost by' : 'Found by'} {report.reporterName}
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            {report.type === 'LOST' ? 'Lost by' : 'Found by'} {report.reporterName}
-          </p>
 
           {claim.status === 'APPROVED' && handover && (
-            <div className="mt-3 space-y-1 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-              <p className="text-sm text-blue-200">✉️ {report.reporterContact}</p>
-              <p className="text-sm text-blue-200">
+            <div className="info-callout mt-3 space-y-1 text-sm">
+              <p>{report.reporterContact}</p>
+              <p>
                 Handover code: <span className="font-mono font-semibold">{handover.handoverCode}</span>
               </p>
-              <p className="text-xs text-blue-300">{handover.confirmed ? 'Handed over' : 'Awaiting handover'}</p>
+              <p className="text-xs opacity-80">{handover.confirmed ? 'Handed over' : 'Awaiting handover'}</p>
             </div>
           )}
         </li>

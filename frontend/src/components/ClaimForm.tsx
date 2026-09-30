@@ -13,10 +13,6 @@ interface Props {
   readonly onCancel: () => void
 }
 
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-neutral-800/60 px-3 py-2 text-white placeholder-gray-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20'
-const labelClass = 'mb-1 block text-xs font-medium text-gray-400'
-
 export function ClaimForm({
   reportId,
   reportType,
@@ -45,19 +41,19 @@ export function ClaimForm({
             setContactErrorMsg(err instanceof Error ? err.message : 'Failed to submit claim')
           })
       }}
-      className="mt-5 space-y-4 border-t border-white/10 pt-5"
+      className="space-y-4"
     >
-      <h4 className="text-sm font-semibold text-white">Submit a claim</h4>
+      <h4 className="text-sm font-semibold text-ink">Submit a claim</h4>
 
       <div>
-        <label htmlFor="claimantName" className={labelClass}>
+        <label htmlFor="claimantName" className="field-label">
           Your name
         </label>
-        <input id="claimantName" disabled value={claimantName} className={`${inputClass} cursor-not-allowed opacity-60`} />
+        <input id="claimantName" disabled value={claimantName} className="field-input" />
       </div>
 
       <div>
-        <label htmlFor="claimantContact" className={labelClass}>
+        <label htmlFor="claimantContact" className="field-label">
           Your contact
         </label>
         <input
@@ -69,13 +65,13 @@ export function ClaimForm({
           }}
           placeholder="email or phone"
           aria-invalid={contactErrorMsg ? true : undefined}
-          className={inputClass}
+          className="field-input"
         />
         <FieldError message={contactErrorMsg} />
       </div>
 
       <div>
-        <label htmlFor="reason" className={labelClass}>
+        <label htmlFor="reason" className="field-label">
           {reportType === 'FOUND' ? 'Why is this yours? (optional)' : 'Where/how did you find it? (optional)'}
         </label>
         <textarea
@@ -86,22 +82,15 @@ export function ClaimForm({
           placeholder={
             reportType === 'FOUND' ? "A detail that proves it's yours" : 'Details that help confirm the match'
           }
-          className={inputClass}
+          className="field-input"
         />
       </div>
 
       <div className="flex gap-2">
-        <button
-          type="submit"
-          className="flex-1 rounded-xl bg-linear-to-b from-white to-gray-200 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm transition hover:from-gray-100 hover:to-gray-300"
-        >
+        <button type="submit" className="btn-primary flex-1">
           Submit claim
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white"
-        >
+        <button type="button" onClick={onCancel} className="btn-secondary">
           Cancel
         </button>
       </div>

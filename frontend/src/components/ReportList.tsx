@@ -24,6 +24,18 @@ const FILTER_LABELS: Record<ReportFilter, string> = {
   MINE: 'My reports',
 }
 
+const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+})
+
+function formatDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  return DATE_FORMAT.format(d)
+}
+
 function matchesSearch(r: Report, search: string): boolean {
   const term = search.trim().toLowerCase()
   if (term === '') return true
@@ -43,33 +55,27 @@ function ReportRow({
 }) {
   return (
     <li>
-      <button
-        onClick={onSelect}
-        className="w-full rounded-xl border border-white/10 bg-neutral-900/60 p-4 text-left transition hover:border-white/20"
-      >
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-white">{report.item.name}</span>
-          <span
-            className={
-              report.type === 'LOST'
-                ? 'rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-300'
-                : 'rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-300'
-            }
-          >
-            {report.type === 'LOST' ? 'Lost' : 'Found'}
+      <button type="button" onClick={onSelect} className="list-row group">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-ink group-hover:text-teal">{report.item.name}</span>
+              <span className={report.type === 'LOST' ? 'badge-lost' : 'badge-found'}>
+                {report.type === 'LOST' ? 'Lost' : 'Found'}
+              </span>
+              {report.item.category && <span className="chip">{report.item.category}</span>}
+              {pending > 0 && (
+                <span className="rounded bg-warn-soft px-2 py-0.5 text-xs font-medium text-warn">
+                  {pending} {pending === 1 ? 'claim' : 'claims'} pending
+                </span>
+              )}
+            </div>
+            <p className="mt-1.5 text-sm text-ink-muted">{report.location}</p>
+            <p className="mt-0.5 text-xs text-ink-faint">{formatDate(report.date)}</p>
+          </div>
+          <span aria-hidden className="mt-1 text-ink-faint transition group-hover:text-teal">
+            →
           </span>
-        </div>
-        <div className="mt-1 flex items-center gap-2">
-          {report.item.category && (
-            <span className="inline-block rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-gray-400">
-              {report.item.category}
-            </span>
-          )}
-          {pending > 0 && (
-            <span className="inline-block rounded-full bg-blue-500/20 px-2 py-0.5 text-xs font-medium text-blue-300">
-              {pending} {pending === 1 ? 'claim' : 'claims'} pending
-            </span>
-          )}
         </div>
       </button>
     </li>
@@ -139,7 +145,7 @@ export function ReportList({
           aria-hidden
           viewBox="0 0 20 20"
           fill="none"
-          className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500"
+          className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-ink-faint"
         >
           <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
           <path d="M17 17L13.5 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -149,20 +155,17 @@ export function ReportList({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, description, location, or reporter…"
           aria-label="Search reports"
-          className="w-full rounded-lg border border-white/10 bg-neutral-800/60 py-2 pr-3 pl-9 text-white placeholder-gray-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20"
+          className="field-input pl-9"
         />
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-2 flex flex-wrap gap-2">
         {FILTER_OPTIONS.map((option) => (
           <button
             key={option}
+            type="button"
             onClick={() => onFilterChange(option)}
-            className={
-              filter === option
-                ? 'rounded-full border border-white/40 px-3 py-1 text-sm font-medium text-white'
-                : 'rounded-full border border-transparent bg-neutral-800 px-3 py-1 text-sm font-medium text-gray-400 hover:text-gray-200'
-            }
+            className={filter === option ? 'chip chip-active' : 'chip'}
           >
             {FILTER_LABELS[option]}
           </button>
@@ -170,9 +173,9 @@ export function ReportList({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-gray-500">{emptyMessage}</p>
+        <p className="mt-6 text-ink-faint">{emptyMessage}</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="mt-2 border-t border-line">
           {filtered.map((r) => (
             <ReportRow
               key={r.id}

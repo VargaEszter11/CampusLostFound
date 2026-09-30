@@ -1,8 +1,263 @@
 @import "tailwindcss";
 
+@theme {
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #f1f3f2;
+  --color-ink-muted: #9aa3a0;
+  --color-ink-faint: #6d7672;
+  --color-paper: #0c0e0d;
+  --color-paper-deep: #070908;
+  --color-surface: #151918;
+  --color-line: #2a312e;
+  --color-line-strong: #3f4844;
+  --color-teal: #2dd4bf;
+  --color-teal-bright: #5eead4;
+  --color-teal-soft: #14302b;
+  --color-mint: #102420;
+  --color-danger: #f97066;
+  --color-danger-soft: #3b1614;
+  --color-warn: #fbbf24;
+  --color-warn-soft: #3a2a0a;
+}
+
 html,
 body {
   max-width: 100%;
   overflow-x: hidden;
-  background-color: #0a0a0a;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-ink {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  .app-shell {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+      radial-gradient(ellipse 70% 45% at 8% -8%, color-mix(in oklab, var(--color-teal) 14%, transparent), transparent 55%),
+      radial-gradient(ellipse 55% 35% at 100% 0%, color-mix(in oklab, var(--color-teal) 8%, transparent), transparent 50%),
+      linear-gradient(180deg, var(--color-paper) 0%, var(--color-paper-deep) 100%);
+  }
+
+  .brand-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  .panel-enter {
+    animation: fade-up 280ms ease-out both;
+  }
+
+  .tab-active {
+    position: relative;
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+
+  .tab-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--color-teal);
+    transform-origin: left center;
+    animation: tab-ink 220ms ease-out both;
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--color-ink-muted);
+  }
+
+  .field-input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-line);
+    background: color-mix(in oklab, var(--color-surface) 80%, black);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .field-input::placeholder {
+    color: var(--color-ink-faint);
+  }
+
+  .field-input:focus {
+    border-color: var(--color-teal);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-teal) 22%, transparent);
+  }
+
+  .field-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background: var(--color-paper);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: var(--color-teal);
+    padding: 0.7rem 1rem;
+    font-weight: 600;
+    color: #042f2e;
+    transition: background-color 150ms ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-teal-bright);
+  }
+
+  .btn-primary:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-line);
+    background: transparent;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-ink-muted);
+    transition: border-color 150ms ease, color 150ms ease;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+
+  .badge-lost {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    background: #e8ebe9;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #161918;
+  }
+
+  .badge-found {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    background: var(--color-teal-soft);
+    padding: 0.2rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-teal-bright);
+  }
+
+  .list-row {
+    width: 100%;
+    border-bottom: 1px solid var(--color-line);
+    background: transparent;
+    padding: 1rem 0.15rem;
+    text-align: left;
+    transition: background-color 150ms ease;
+  }
+
+  .list-row:hover {
+    background: color-mix(in oklab, var(--color-mint) 70%, transparent);
+  }
+
+  .surface-panel {
+    border: 1px solid var(--color-line);
+    border-radius: 1rem;
+    background: color-mix(in oklab, var(--color-surface) 88%, transparent);
+    padding: 1.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    border: 1px solid var(--color-line);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-ink-muted);
+    transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+  }
+
+  .chip:hover {
+    border-color: var(--color-line-strong);
+    color: var(--color-ink);
+  }
+
+  .chip-active {
+    border-color: color-mix(in oklab, var(--color-teal) 55%, var(--color-line));
+    background: var(--color-teal-soft);
+    color: var(--color-teal-bright);
+  }
+
+  .status-pending {
+    background: var(--color-warn-soft);
+    color: var(--color-warn);
+  }
+
+  .status-approved {
+    background: var(--color-teal-soft);
+    color: var(--color-teal-bright);
+  }
+
+  .status-rejected {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+  }
+
+  .info-callout {
+    border: 1px solid color-mix(in oklab, var(--color-teal) 30%, var(--color-line));
+    border-radius: 0.75rem;
+    background: var(--color-mint);
+    padding: 0.85rem 1rem;
+    color: var(--color-teal-bright);
+  }
 }

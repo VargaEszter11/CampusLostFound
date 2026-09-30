@@ -133,15 +133,15 @@ export function NotificationBell({ onNavigate }: Props) {
         <div
           ref={menuRef}
           style={{ top: menuPos.top, right: menuPos.right }}
-          className="fixed z-[100] w-80 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-white/10 bg-neutral-900 shadow-xl"
+          className="fixed z-[100] w-80 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-line bg-surface shadow-xl"
         >
-          <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-            <span className="text-sm font-semibold text-white">Notifications</span>
+          <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
+            <span className="text-sm font-semibold text-ink">Notifications</span>
             {unreadCount > 0 && (
               <button
                 type="button"
                 onClick={() => void handleMarkAll()}
-                className="text-xs text-blue-300 hover:text-blue-200"
+                className="text-xs font-medium text-teal hover:underline"
               >
                 Mark all read
               </button>
@@ -149,27 +149,27 @@ export function NotificationBell({ onNavigate }: Props) {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {loading && items.length === 0 && (
-              <p className="px-3 py-4 text-sm text-gray-500">Loading…</p>
+              <p className="px-3 py-4 text-sm text-ink-faint">Loading…</p>
             )}
-            {error && <p className="px-3 py-3 text-sm text-red-300">{error}</p>}
+            {error && <p className="px-3 py-3 text-sm text-danger">{error}</p>}
             {!loading && !error && items.length === 0 && (
-              <p className="px-3 py-4 text-sm text-gray-500">No notifications yet.</p>
+              <p className="px-3 py-4 text-sm text-ink-faint">No notifications yet.</p>
             )}
             <ul>
               {items.map((n) => (
-                <li key={n.id} className="border-b border-white/5 last:border-0">
+                <li key={n.id} className="border-b border-line last:border-0">
                   <button
                     type="button"
                     onClick={() => void handleItemClick(n)}
                     className={
                       n.read
-                        ? 'flex w-full flex-col gap-0.5 px-3 py-2.5 text-left hover:bg-white/5'
-                        : 'flex w-full flex-col gap-0.5 bg-blue-500/10 px-3 py-2.5 text-left hover:bg-blue-500/15'
+                        ? 'flex w-full flex-col gap-0.5 px-3 py-2.5 text-left hover:bg-mint'
+                        : 'flex w-full flex-col gap-0.5 bg-teal-soft/50 px-3 py-2.5 text-left hover:bg-teal-soft'
                     }
                   >
-                    <span className="text-sm font-medium text-white">{n.title}</span>
-                    {n.body && <span className="text-xs text-gray-400">{n.body}</span>}
-                    <span className="text-[11px] text-gray-500">{relativeTime(n.createdAt)}</span>
+                    <span className="text-sm font-medium text-ink">{n.title}</span>
+                    {n.body && <span className="text-xs text-ink-muted">{n.body}</span>}
+                    <span className="text-[11px] text-ink-faint">{relativeTime(n.createdAt)}</span>
                   </button>
                 </li>
               ))}
@@ -191,14 +191,14 @@ export function NotificationBell({ onNavigate }: Props) {
           setOpen((v) => !v)
           if (!open) void refresh()
         }}
-        className="relative rounded-lg border border-white/20 bg-white/5 px-2.5 py-1.5 text-gray-200 hover:border-white/40 hover:text-white"
+        className="relative rounded-lg border border-line bg-surface px-2.5 py-1.5 text-ink-muted transition hover:border-teal hover:text-teal"
       >
         <svg aria-hidden className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
           <path d="M10 21a2 2 0 0 0 4 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-4 rounded-full bg-blue-500 px-1 text-center text-[10px] font-semibold text-white">
+          <span className="absolute -top-1.5 -right-1.5 min-w-4 rounded-full bg-teal px-1 text-center text-[10px] font-semibold text-paper">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

@@ -25,7 +25,6 @@ function parseIso(iso: string): Date | null {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
 }
 
-// Grid cells for the visible month, Monday-first, including leading/trailing days from adjacent months.
 function buildGrid(viewDate: Date): Date[] {
   const firstOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)
   const startOffset = (firstOfMonth.getDay() + 6) % 7
@@ -80,40 +79,40 @@ export function DatePicker({ id, value, onChange, max, ariaInvalid }: Props) {
         id={id}
         onClick={() => (open ? setOpen(false) : openPicker())}
         aria-invalid={ariaInvalid ? true : undefined}
-        className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-neutral-800/60 px-3 py-2 text-left text-white outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20"
+        className="field-input flex items-center justify-between text-left"
       >
-        <span className={selected ? 'text-white' : 'text-gray-500'}>
+        <span className={selected ? 'text-ink' : 'text-ink-faint'}>
           {selected ? DISPLAY_FORMAT.format(selected) : 'Select a date'}
         </span>
-        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4 text-gray-400">
+        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4 text-ink-faint">
           <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" />
           <path d="M3 8h14M7 2.5v3M13 2.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute z-10 mt-2 w-72 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-xl">
+        <div className="absolute z-10 mt-2 w-72 rounded-xl border border-line bg-surface p-3 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
               aria-label="Previous month"
-              className="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
+              className="rounded-lg p-1.5 text-ink-muted hover:bg-mint hover:text-ink"
             >
               ‹
             </button>
-            <span className="text-sm font-semibold text-white">{MONTH_FORMAT.format(viewDate)}</span>
+            <span className="text-sm font-semibold text-ink">{MONTH_FORMAT.format(viewDate)}</span>
             <button
               type="button"
               onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
               aria-label="Next month"
-              className="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
+              className="rounded-lg p-1.5 text-ink-muted hover:bg-mint hover:text-ink"
             >
               ›
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500">
+          <div className="grid grid-cols-7 gap-1 text-center text-xs text-ink-faint">
             {WEEKDAYS.map((w) => (
               <span key={w} className="py-1">
                 {w}
@@ -138,12 +137,12 @@ export function DatePicker({ id, value, onChange, max, ariaInvalid }: Props) {
                   }}
                   className={
                     isSelected
-                      ? 'rounded-lg bg-white py-1.5 text-sm font-semibold text-neutral-900'
+                      ? 'rounded-lg bg-teal py-1.5 text-sm font-semibold text-paper'
                       : disabled
-                        ? 'rounded-lg py-1.5 text-sm text-gray-700 cursor-not-allowed'
+                        ? 'cursor-not-allowed rounded-lg py-1.5 text-sm text-line-strong'
                         : inMonth
-                          ? 'rounded-lg py-1.5 text-sm text-gray-200 hover:bg-white/10'
-                          : 'rounded-lg py-1.5 text-sm text-gray-600 hover:bg-white/10'
+                          ? 'rounded-lg py-1.5 text-sm text-ink hover:bg-mint'
+                          : 'rounded-lg py-1.5 text-sm text-ink-faint hover:bg-mint'
                   }
                 >
                   {d.getDate()}
@@ -152,11 +151,11 @@ export function DatePicker({ id, value, onChange, max, ariaInvalid }: Props) {
             })}
           </div>
 
-          <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2">
+          <div className="mt-2 flex items-center justify-between border-t border-line pt-2">
             <button
               type="button"
               onClick={() => onChange('')}
-              className="text-xs font-medium text-gray-400 hover:text-white"
+              className="text-xs font-medium text-ink-muted hover:text-ink"
             >
               Clear
             </button>
@@ -169,7 +168,7 @@ export function DatePicker({ id, value, onChange, max, ariaInvalid }: Props) {
                 setViewDate(today)
                 setOpen(false)
               }}
-              className="text-xs font-medium text-blue-400 hover:text-blue-300 disabled:cursor-not-allowed disabled:text-gray-600"
+              className="text-xs font-medium text-teal hover:underline disabled:cursor-not-allowed disabled:text-ink-faint disabled:no-underline"
             >
               Today
             </button>

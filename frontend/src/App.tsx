@@ -17,6 +17,13 @@ import type { Report } from './domain/types'
 
 type Tab = 'REPORT' | 'OPEN_REPORTS' | 'MY_CLAIMS' | 'HANDOVERS'
 
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'REPORT', label: 'Report' },
+  { id: 'OPEN_REPORTS', label: 'Open reports' },
+  { id: 'MY_CLAIMS', label: 'My claims' },
+  { id: 'HANDOVERS', label: 'Handovers' },
+]
+
 function App() {
   const [session, setSessionState] = useState<AuthSession | null>(() => getSession())
   const [tab, setTab] = useState<Tab>('REPORT')
@@ -63,119 +70,96 @@ function App() {
   const myOpenCount = openReports.filter((r) => isSameUser(currentUser, r.reporterName)).length
   const headerCount = filter === 'MINE' ? myOpenCount : otherOpenCount
 
-  return (
-    <div className="relative min-h-screen overflow-x-hidden bg-neutral-950">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-white/5 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-white/5 blur-3xl"
-      />
+  function selectTab(next: Tab) {
+    setTab(next)
+    if (next === 'OPEN_REPORTS') void refresh()
+  }
 
-      <div className="relative mx-auto max-w-2xl px-4 py-16">
-        <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-400">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-            <span className="truncate">Lost & Found reporting portal</span>
+  return (
+    <div className="app-shell">
+      <div className="relative mx-auto max-w-2xl px-4 py-12 sm:py-16">
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="brand-display text-4xl text-ink sm:text-5xl">Lost & Found</h1>
+            <p className="mt-2 max-w-md text-base text-ink-muted">
+              Report and reclaim items on campus.
+            </p>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="hidden sm:inline">
-              Signed in as <span className="font-medium text-gray-200">{currentUser}</span>
-            </span>
+          <div className="flex shrink-0 items-center gap-3 pt-1">
+            <NotificationBell
+              onNavigate={(next) => {
+                selectTab(next)
+              }}
+            />
+            <div className="hidden text-right text-sm sm:block">
+              <p className="font-medium text-ink">{currentUser}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  clearSession()
+                  setSessionState(null)
+                }}
+                className="text-ink-muted underline-offset-2 hover:text-teal hover:underline"
+              >
+                Sign out
+              </button>
+            </div>
             <button
+              type="button"
               onClick={() => {
                 clearSession()
                 setSessionState(null)
               }}
-              className="text-gray-400 underline-offset-2 hover:text-white hover:underline"
+              className="text-sm text-ink-muted underline-offset-2 hover:text-teal hover:underline sm:hidden"
             >
               Sign out
             </button>
           </div>
         </div>
 
-        <div className="mb-3 flex items-start justify-between gap-4">
-          <h1 className="text-5xl font-bold text-white">Lost & Found</h1>
-          <NotificationBell
-            onNavigate={(next) => {
-              setTab(next)
-              if (next === 'OPEN_REPORTS') void refresh()
-            }}
-          />
-        </div>
-
-        <div className="mt-8 flex flex-wrap gap-6 border-b border-white/10">
-          <button
-            onClick={() => setTab('REPORT')}
-            className={
-              tab === 'REPORT'
-                ? 'border-b-2 border-white pb-2 text-sm font-semibold text-white'
-                : 'border-b-2 border-transparent pb-2 text-sm font-medium text-gray-400 hover:text-gray-200'
-            }
-          >
-            Report
-          </button>
-          <button
-            onClick={() => {
-              setTab('OPEN_REPORTS')
-              void refresh()
-            }}
-            className={
-              tab === 'OPEN_REPORTS'
-                ? 'border-b-2 border-white pb-2 text-sm font-semibold text-white'
-                : 'border-b-2 border-transparent pb-2 text-sm font-medium text-gray-400 hover:text-gray-200'
-            }
-          >
-            Open reports
-          </button>
-          <button
-            onClick={() => setTab('MY_CLAIMS')}
-            className={
-              tab === 'MY_CLAIMS'
-                ? 'border-b-2 border-white pb-2 text-sm font-semibold text-white'
-                : 'border-b-2 border-transparent pb-2 text-sm font-medium text-gray-400 hover:text-gray-200'
-            }
-          >
-            My claims
-          </button>
-          <button
-            onClick={() => setTab('HANDOVERS')}
-            className={
-              tab === 'HANDOVERS'
-                ? 'border-b-2 border-white pb-2 text-sm font-semibold text-white'
-                : 'border-b-2 border-transparent pb-2 text-sm font-medium text-gray-400 hover:text-gray-200'
-            }
-          >
-            Handovers
-          </button>
-        </div>
+        <nav className="flex flex-wrap gap-x-6 gap-y-2 border-b border-line">
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => selectTab(id)}
+              className={
+                tab === id
+                  ? 'tab-active pb-2.5 text-sm'
+                  : 'pb-2.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink'
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
 
         {tab === 'REPORT' && (
-          <div className="mt-8 rounded-2xl border border-white/10 bg-neutral-900/60 p-6 shadow-xl backdrop-blur">
-            <ReportForm
-              reporterName={currentUser}
-              defaultContact={session.email}
-              onCreated={() => {
-                void refresh()
-                setTab('OPEN_REPORTS')
-              }}
-            />
+          <div key="report" className="panel-enter mt-8">
+            <div className="surface-panel">
+              <ReportForm
+                reporterName={currentUser}
+                defaultContact={session.email}
+                onCreated={() => {
+                  void refresh()
+                  setTab('OPEN_REPORTS')
+                }}
+              />
+            </div>
           </div>
         )}
 
         {tab === 'OPEN_REPORTS' && (
-          <div className="mt-8">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Open reports</h2>
-              <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
+          <div key="open" className="panel-enter mt-8">
+            <div className="mb-5 flex items-end justify-between gap-3">
+              <h2 className="brand-display text-2xl text-ink">Open reports</h2>
+              <span className="rounded bg-teal-soft px-2.5 py-1 text-xs font-semibold text-teal">
                 {headerCount} {headerCount === 1 ? 'report' : 'reports'}
               </span>
             </div>
-            {reportsError && <p className="mb-4 text-sm text-red-300">{reportsError}</p>}
+            {reportsError && <p className="mb-4 text-sm text-danger">{reportsError}</p>}
             {reportsLoading && openReports.length === 0 ? (
-              <p className="text-gray-500">Loading reports…</p>
+              <p className="text-ink-faint">Loading reports…</p>
             ) : (
               <ReportList
                 reports={openReports}
@@ -192,15 +176,15 @@ function App() {
         )}
 
         {tab === 'MY_CLAIMS' && (
-          <div className="mt-8">
-            <h2 className="mb-4 text-xl font-bold text-white">My claims</h2>
+          <div key="claims" className="panel-enter mt-8">
+            <h2 className="brand-display mb-5 text-2xl text-ink">My claims</h2>
             <MyClaims />
           </div>
         )}
 
         {tab === 'HANDOVERS' && (
-          <div className="mt-8">
-            <h2 className="mb-4 text-xl font-bold text-white">Handovers</h2>
+          <div key="handovers" className="panel-enter mt-8">
+            <h2 className="brand-display mb-5 text-2xl text-ink">Handovers</h2>
             <MyHandovers />
           </div>
         )}
