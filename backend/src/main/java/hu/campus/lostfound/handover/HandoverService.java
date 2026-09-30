@@ -5,6 +5,8 @@ import hu.campus.lostfound.claim.Claim;
 import hu.campus.lostfound.claim.ClaimMapper;
 import hu.campus.lostfound.handover.Handover;
 import hu.campus.lostfound.handover.HandoverRepository;
+import hu.campus.lostfound.notification.NotificationService;
+import hu.campus.lostfound.notification.NotificationType;
 import hu.campus.lostfound.report.Report;
 import hu.campus.lostfound.report.ReportStatus;
 import hu.campus.lostfound.shared.BadRequestException;
@@ -22,10 +24,16 @@ public class HandoverService {
 
     private final HandoverRepository handoverRepository;
     private final AuthSupport authSupport;
+    private final NotificationService notificationService;
 
-    public HandoverService(HandoverRepository handoverRepository, AuthSupport authSupport) {
+    public HandoverService(
+            HandoverRepository handoverRepository,
+            AuthSupport authSupport,
+            NotificationService notificationService
+    ) {
         this.handoverRepository = handoverRepository;
         this.authSupport = authSupport;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +61,21 @@ public class HandoverService {
         }
         Instant now = Instant.now();
         handover.confirm(now);
-        handover.getClaim().getReport().setStatus(ReportStatus.CLOSED);
+        Report report = handover.getClaim().getReport();
+        report.setStatus(ReportStatus.CLOSED);
+
+        User recipient = isReporter ? claim.getClaimant() : claim.getReport().getReporter();
+        String itemName = report.getItem().getName();
+        notificationService.notify(
+                recipient,
+                NotificationType.HANDOVER_CONFIRMED,
+                "Handover confirmed",
+                "Handover confirmed for \"" + itemName + "\".",
+                report.getId(),
+                claim.getId(),
+                handover.getId()
+        );
+
         return ClaimMapper.toResponse(handover);
     }
 

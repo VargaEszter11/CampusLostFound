@@ -55,6 +55,7 @@ Flyway runs automatically on Spring Boot startup. SQL lives in `src/main/resourc
 - `V4__remove_seed_demo_data.sql` — drops old sample reports/items (users kept)
 - `V5__auth_demo_passwords.sql` — sets BCrypt passwords for demo users (`demo123`), `password_hash` NOT NULL
 - `V6__google_auth.sql` — nullable `password_hash` again, `google_sub` for Google Sign-In
+- `V7__notifications.sql` — in-app `notifications` table
 
 Prefer letting Flyway own migrations on Boot start.
 
@@ -105,6 +106,16 @@ Example Google login:
 ```json
 { "idToken": "<Google Identity Services credential JWT>" }
 ```
+
+## Notifications API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/notifications` | List current user's notifications + `unreadCount` |
+| `POST` | `/api/notifications/{id}/read` | Mark one notification read |
+| `POST` | `/api/notifications/read-all` | Mark all read |
+
+Created automatically on claim create/approve/reject and handover confirm.
 
 ## Reports API
 
@@ -170,6 +181,7 @@ Create claim body:
 backend/src/main/java/hu/campus/lostfound/
   LostFoundApplication.java
   auth/         JWT + Spring Security, login/register/Google
+  notification/ In-app notifications
   report/       Report + Item entities, repos, service, controllers, DTOs
   claim/        Claim entity, repo, service, controller, DTOs
   handover/     Handover entity, repo, service, controller, DTOs

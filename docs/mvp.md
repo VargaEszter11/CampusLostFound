@@ -22,11 +22,12 @@ A Campus Lost & Found egy egyetemi elveszett tárgyak rendszer, amelynek célja,
 - **Handovers** nézet: a felhasználót érintő átadások (bejelentőként vagy igénylőként), átadási kóddal és megerősítéssel;
 - mezőszintű validáció: kötelező mezők, e-mail-cím vagy telefonszám formátum, jövőbeli dátum tiltása;
 - adatok a Spring Boot API-n / PostgreSQL-en keresztül mentődnek (nem `localStorage`);
-- védett API: a műveletek a JWT-ből azonosított felhasználóhoz kötődnek (nem kliens által küldött névhez).
+- védett API: a műveletek a JWT-ből azonosított felhasználóhoz kötődnek (nem kliens által küldött névhez);
+- in-app értesítések: új igénylés, jóváhagyás/elutasítás, átadás megerősítése — fejlécbeli harang ikon, olvasatlan számláló, lista.
 
 ## Fő felületi elemek
 
-Belépéskor egy bejelentkező képernyő jelenik meg (Sign in / Register, plusz Continue with Google ha a Client ID be van állítva). Demó felhasználó gombok kitöltik az e-mailt és a jelszót. Bejelentkezés után a főoldalon négy fül van: **Report**, **Open reports**, **My claims** és **Handovers**.
+Belépéskor egy bejelentkező képernyő jelenik meg (Sign in / Register, plusz Continue with Google ha a Client ID be van állítva). Demó felhasználó gombok kitöltik az e-mailt és a jelszót. Bejelentkezés után a főoldalon négy fül van: **Report**, **Open reports**, **My claims** és **Handovers**, a fejlécben pedig értesítés-harang.
 
 A **Report** fülön egy űrlap jelenik meg (Elveszett/Megtalált váltó, tárgy adatai, dátumválasztó, bejelentő neve/elérhetősége). Beküldés után az alkalmazás átvált az Open reports fülre.
 
@@ -42,4 +43,4 @@ A **My claims** fülön a felhasználó saját igényléseit követheti. A **Han
 
 ## Jelenlegi korlátok
 
-Nincs e-mail-ellenőrzés, jelszó-visszaállítás, refresh token, OAuth, értesítés, admin nézet, LLM kategória-javaslat, sem automatizált tesztek.
+Nincs e-mail-ellenőrzés, jelszó-visszaállítás, refresh token, email/push értesítés, admin nézet, LLM kategória-javaslat, sem automatizált tesztek.

@@ -15,7 +15,7 @@
 - [x] My reports filter (own reports separate from Lost/Found)
 - [x] add backend for login
 - [x] Google login
-- [ ] add notifications for claims and accept/decline
+- [x] add notifications for claims and accept/decline and handovers
 - [ ] LLM category suggestion
 - [ ] admin page for every lost/found item, past items too
 - [ ] tests

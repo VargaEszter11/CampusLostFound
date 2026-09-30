@@ -11,6 +11,7 @@ A négy fő use case API + PostgreSQL mögött fut:
 - **Igénylés** — kész
 - **Átadás jóváhagyása** — kész (Handovers fül is)
 - **Bejelentkezés** — kész (e-mail + jelszó, Google Sign-In, JWT)
+- **Értesítések** — kész (in-app: claim / approve / reject / handover)
 
 Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.md](docs/todo.md).
 

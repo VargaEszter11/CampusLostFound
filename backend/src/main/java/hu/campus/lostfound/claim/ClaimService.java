@@ -4,6 +4,8 @@ import hu.campus.lostfound.auth.AuthSupport;
 import hu.campus.lostfound.handover.Handover;
 import hu.campus.lostfound.handover.HandoverRepository;
 import hu.campus.lostfound.handover.HandoverResponse;
+import hu.campus.lostfound.notification.NotificationService;
+import hu.campus.lostfound.notification.NotificationType;
 import hu.campus.lostfound.report.Report;
 import hu.campus.lostfound.report.ReportService;
 import hu.campus.lostfound.report.ReportStatus;
@@ -13,6 +15,7 @@ import hu.campus.lostfound.shared.NotFoundException;
 import hu.campus.lostfound.user.User;
 import hu.campus.lostfound.user.UserService;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -29,19 +32,22 @@ public class ClaimService {
     private final ReportService reportService;
     private final UserService userService;
     private final AuthSupport authSupport;
+    private final NotificationService notificationService;
 
     public ClaimService(
             ClaimRepository claimRepository,
             HandoverRepository handoverRepository,
             ReportService reportService,
             UserService userService,
-            AuthSupport authSupport
+            AuthSupport authSupport,
+            NotificationService notificationService
     ) {
         this.claimRepository = claimRepository;
         this.handoverRepository = handoverRepository;
         this.reportService = reportService;
         this.userService = userService;
         this.authSupport = authSupport;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +110,18 @@ public class ClaimService {
                 Instant.now()
         );
         claimRepository.save(claim);
+
+        String itemName = report.getItem().getName();
+        notificationService.notify(
+                report.getReporter(),
+                NotificationType.CLAIM_CREATED,
+                "New claim on \"" + itemName + "\"",
+                claimant.getDisplayName() + " submitted a claim on your report.",
+                report.getId(),
+                claim.getId(),
+                null
+        );
+
         return ClaimMapper.toResponse(claim);
     }
 
@@ -127,9 +145,11 @@ public class ClaimService {
         }
 
         claim.setStatus(ClaimStatus.APPROVED);
+        List<Claim> autoRejected = new ArrayList<>();
         for (Claim other : claimRepository.findByReportIdOrderByCreatedAtAsc(report.getId())) {
             if (!other.getId().equals(claimId) && other.getStatus() == ClaimStatus.PENDING) {
                 other.setStatus(ClaimStatus.REJECTED);
+                autoRejected.add(other);
             }
         }
 
@@ -141,6 +161,29 @@ public class ClaimService {
                 null
         );
         handoverRepository.save(handover);
+
+        String itemName = report.getItem().getName();
+        notificationService.notify(
+                claim.getClaimant(),
+                NotificationType.CLAIM_APPROVED,
+                "Claim approved",
+                "Your claim on \"" + itemName + "\" was approved. A handover code is ready.",
+                report.getId(),
+                claim.getId(),
+                handover.getId()
+        );
+        for (Claim rejected : autoRejected) {
+            notificationService.notify(
+                    rejected.getClaimant(),
+                    NotificationType.CLAIM_REJECTED,
+                    "Claim rejected",
+                    "Your claim on \"" + itemName + "\" was rejected because another claim was approved.",
+                    report.getId(),
+                    rejected.getId(),
+                    null
+            );
+        }
+
         return ClaimMapper.toResponse(handover);
     }
 
@@ -155,6 +198,19 @@ public class ClaimService {
             throw new BadRequestException("This claim was already resolved");
         }
         claim.setStatus(ClaimStatus.REJECTED);
+
+        Report report = claim.getReport();
+        String itemName = report.getItem().getName();
+        notificationService.notify(
+                claim.getClaimant(),
+                NotificationType.CLAIM_REJECTED,
+                "Claim rejected",
+                "Your claim on \"" + itemName + "\" was rejected.",
+                report.getId(),
+                claim.getId(),
+                null
+        );
+
         return ClaimMapper.toResponse(claim);
     }
 
@@ -172,7 +228,26 @@ public class ClaimService {
         handover.confirm(now);
         Report report = handover.getClaim().getReport();
         report.setStatus(ReportStatus.CLOSED);
+        notifyOtherPartyOfHandover(handover, current);
         return ClaimMapper.toResponse(handover);
+    }
+
+    private void notifyOtherPartyOfHandover(Handover handover, User actor) {
+        Claim claim = handover.getClaim();
+        Report report = claim.getReport();
+        User reporter = report.getReporter();
+        User claimant = claim.getClaimant();
+        User recipient = reporter.getId().equals(actor.getId()) ? claimant : reporter;
+        String itemName = report.getItem().getName();
+        notificationService.notify(
+                recipient,
+                NotificationType.HANDOVER_CONFIRMED,
+                "Handover confirmed",
+                "Handover confirmed for \"" + itemName + "\".",
+                report.getId(),
+                claim.getId(),
+                handover.getId()
+        );
     }
 
     private void assertCanViewHandover(Report report, Handover handover, User current) {

@@ -4,6 +4,7 @@ import {
   getMyHandovers,
   type HandoverListItem,
 } from '../storage/handoverStore'
+import { notifyNotificationsChanged } from '../storage/notificationStore'
 
 export function MyHandovers() {
   const [items, setItems] = useState<HandoverListItem[]>([])
@@ -88,7 +89,10 @@ export function MyHandovers() {
                 onClick={() => {
                   setActionError(undefined)
                   void confirmHandoverById(h.id)
-                    .then(() => load())
+                    .then(() => {
+                      notifyNotificationsChanged()
+                      return load()
+                    })
                     .catch((err: unknown) => {
                       setActionError(err instanceof Error ? err.message : 'Failed to confirm handover')
                     })

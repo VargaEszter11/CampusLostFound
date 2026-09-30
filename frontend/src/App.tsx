@@ -4,6 +4,7 @@ import { ReportList, type ReportFilter } from './components/ReportList'
 import { LoginScreen } from './components/LoginScreen'
 import { MyClaims } from './components/MyClaims'
 import { MyHandovers } from './components/MyHandovers'
+import { NotificationBell } from './components/NotificationBell'
 import { getOpenReports } from './storage/reportStore'
 import {
   clearSession,
@@ -63,7 +64,7 @@ function App() {
   const headerCount = filter === 'MINE' ? myOpenCount : otherOpenCount
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-neutral-950">
+    <div className="relative min-h-screen bg-neutral-950">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-white/5 blur-3xl"
@@ -74,13 +75,19 @@ function App() {
       />
 
       <div className="relative mx-auto max-w-2xl px-4 py-16">
-        <div className="mb-4 flex items-center justify-between text-sm text-gray-400">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-            <span>Lost & Found reporting portal</span>
+        <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-400">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+            <span className="truncate">Lost & Found reporting portal</span>
           </div>
-          <div className="flex items-center gap-3">
-            <span>
+          <div className="flex shrink-0 items-center gap-3">
+            <NotificationBell
+              onNavigate={(next) => {
+                setTab(next)
+                if (next === 'OPEN_REPORTS') void refresh()
+              }}
+            />
+            <span className="hidden sm:inline">
               Signed in as <span className="font-medium text-gray-200">{currentUser}</span>
             </span>
             <button

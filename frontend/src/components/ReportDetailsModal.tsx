@@ -8,6 +8,7 @@ import {
   rejectClaim,
 } from '../storage/claimStore'
 import { isSameUser } from '../storage/authStore'
+import { notifyNotificationsChanged } from '../storage/notificationStore'
 import { ClaimForm } from './ClaimForm'
 
 interface Props {
@@ -47,6 +48,7 @@ export function ReportDetailsModal({ report, onClose, onReportChanged, currentUs
     setActionError(undefined)
     await loadClaims()
     onReportChangedRef.current?.()
+    notifyNotificationsChanged()
   }
 
   useEffect(() => {
