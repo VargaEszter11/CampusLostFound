@@ -72,9 +72,12 @@ export function ReportDetailsModal({
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setActionError(undefined)
-    void loadClaims()
+    void Promise.all([getClaimsForReport(report.id), getHandoverForReport(report.id)])
+      .then(([nextClaims, nextHandover]) => {
+        if (cancelled) return
+        setClaims(nextClaims)
+        setHandover(nextHandover)
+      })
       .catch((err: unknown) => {
         if (!cancelled) {
           setActionError(err instanceof Error ? err.message : 'Failed to load claims')
@@ -86,7 +89,7 @@ export function ReportDetailsModal({
     return () => {
       cancelled = true
     }
-  }, [loadClaims])
+  }, [report.id])
 
   useEffect(() => {
     const dialog = dialogRef.current

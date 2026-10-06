@@ -24,10 +24,9 @@ export function MyHandovers({ focusHandoverId = null }: Props) {
   }, [focusHandoverId, loading, items])
 
   const load = useCallback(async () => {
-    setLoading(true)
-    setError(undefined)
     try {
       setItems(await getMyHandovers())
+      setError(undefined)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load handovers')
     } finally {
@@ -36,8 +35,23 @@ export function MyHandovers({ focusHandoverId = null }: Props) {
   }, [])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    let cancelled = false
+    void getMyHandovers()
+      .then((data) => {
+        if (cancelled) return
+        setItems(data)
+        setError(undefined)
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load handovers')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (loading) {
     return <p className="text-ink-faint">Loading handovers…</p>

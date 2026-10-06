@@ -123,10 +123,7 @@ export function ReportList({
   useEffect(() => {
     let cancelled = false
     const owned = reports.filter((r) => isSameUser(currentUser, r.reporterName))
-    if (owned.length === 0) {
-      setSummaryByReport({})
-      return
-    }
+    if (owned.length === 0) return
 
     void Promise.all(
       owned.map(async (r) => {

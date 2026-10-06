@@ -43,7 +43,10 @@ export function LoginScreen({ onLogin }: Props) {
   const [googleReady, setGoogleReady] = useState(false)
   const googleButtonRef = useRef<HTMLDivElement>(null)
   const onLoginRef = useRef(onLogin)
-  onLoginRef.current = onLogin
+
+  useEffect(() => {
+    onLoginRef.current = onLogin
+  }, [onLogin])
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) {

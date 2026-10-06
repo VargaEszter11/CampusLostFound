@@ -39,8 +39,6 @@ export function MyClaims({ focusClaimId = null }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
-    setError(undefined)
 
     void getMyClaims()
       .then(async (claims) => {

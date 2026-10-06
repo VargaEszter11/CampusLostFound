@@ -29,7 +29,7 @@ function App() {
   const [session, setSessionState] = useState<AuthSession | null>(() => getSession())
   const [tab, setTab] = useState<Tab>('REPORT')
   const [openReports, setOpenReports] = useState<Report[]>([])
-  const [reportsLoading, setReportsLoading] = useState(false)
+  const [reportsLoading, setReportsLoading] = useState(true)
   const [reportsError, setReportsError] = useState<string>()
   const [filter, setFilter] = useState<ReportFilter>('ALL')
   const [focus, setFocus] = useState<(NotificationTarget & { key: number }) | null>(null)
@@ -44,10 +44,9 @@ function App() {
   }, [])
 
   const refresh = useCallback(async () => {
-    setReportsLoading(true)
-    setReportsError(undefined)
     try {
       setOpenReports(await getOpenReports())
+      setReportsError(undefined)
     } catch (err) {
       if (!getSession()) {
         setSessionState(null)
@@ -60,10 +59,29 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (session) {
-      void refresh()
+    if (!session) return
+    let cancelled = false
+    void getOpenReports()
+      .then((reports) => {
+        if (cancelled) return
+        setOpenReports(reports)
+        setReportsError(undefined)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        if (!getSession()) {
+          setSessionState(null)
+          return
+        }
+        setReportsError(err instanceof Error ? err.message : 'Failed to load reports')
+      })
+      .finally(() => {
+        if (!cancelled) setReportsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-  }, [session, refresh])
+  }, [session])
 
   if (!session || !currentUser) {
     return <LoginScreen onLogin={setSessionState} />

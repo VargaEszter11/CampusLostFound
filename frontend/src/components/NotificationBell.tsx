@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   deleteNotification,
@@ -6,6 +6,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
   NOTIFICATIONS_CHANGED_EVENT,
+  notifyNotificationsChanged,
   type AppNotification,
   type NotificationTarget,
 } from '../storage/notificationStore'
@@ -40,41 +41,39 @@ export function NotificationBell({ onNavigate }: Props) {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<AppNotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
   const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 })
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    setError(undefined)
-    try {
-      const data = await getNotifications()
-      setItems(data.items)
-      setUnreadCount(data.unreadCount)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load notifications')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let cancelled = false
+    const load = () => {
+      void getNotifications()
+        .then((data) => {
+          if (cancelled) return
+          setItems(data.items)
+          setUnreadCount(data.unreadCount)
+          setError(undefined)
+        })
+        .catch((err: unknown) => {
+          if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load notifications')
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+    }
+    load()
+    const interval = window.setInterval(load, 20_000)
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, load)
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, load)
     }
   }, [])
-
-  useEffect(() => {
-    void refresh()
-    const interval = window.setInterval(() => {
-      void refresh()
-    }, 20_000)
-    const onChanged = () => {
-      void refresh()
-    }
-    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, onChanged)
-    return () => {
-      window.clearInterval(interval)
-      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, onChanged)
-    }
-  }, [refresh])
 
   useLayoutEffect(() => {
     if (!open || !buttonRef.current) return
@@ -206,7 +205,7 @@ export function NotificationBell({ onNavigate }: Props) {
         aria-expanded={open}
         onClick={() => {
           setOpen((v) => !v)
-          if (!open) void refresh()
+          if (!open) notifyNotificationsChanged()
         }}
         className="relative rounded-lg border border-line bg-surface px-2.5 py-1.5 text-ink-muted transition hover:border-teal hover:text-teal"
       >
