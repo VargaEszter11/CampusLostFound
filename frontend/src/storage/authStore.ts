@@ -6,13 +6,6 @@ export interface AuthSession {
 }
 
 const SESSION_KEY = 'lostfound.authSession'
-const LEGACY_USER_KEY = 'lostfound.currentUser'
-
-// Drop pre-API localStorage copies and legacy mock login key.
-localStorage.removeItem('lostfound.reports')
-localStorage.removeItem('lostfound.claims')
-localStorage.removeItem('lostfound.handovers')
-localStorage.removeItem(LEGACY_USER_KEY)
 
 export function getSession(): AuthSession | null {
   const raw = localStorage.getItem(SESSION_KEY)

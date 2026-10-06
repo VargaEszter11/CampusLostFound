@@ -1,5 +1,5 @@
 import type { AuthSession } from '../storage/authStore'
-import { apiFetch, apiUrl, throwIfNotOk } from './http'
+import { apiUrl, throwIfNotOk } from './http'
 
 interface AuthResponse {
   token: string
@@ -47,12 +47,6 @@ export async function loginWithGoogle(idToken: string): Promise<AuthSession> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ idToken }),
   })
-  await throwIfNotOk(res)
-  return toSession((await res.json()) as AuthResponse)
-}
-
-export async function fetchMe(): Promise<AuthSession> {
-  const res = await apiFetch('/api/auth/me')
   await throwIfNotOk(res)
   return toSession((await res.json()) as AuthResponse)
 }

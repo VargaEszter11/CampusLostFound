@@ -6,11 +6,22 @@ import {
 } from '../storage/handoverStore'
 import { notifyNotificationsChanged } from '../storage/notificationStore'
 
-export function MyHandovers() {
+interface Props {
+  readonly focusHandoverId?: string | null
+}
+
+export function MyHandovers({ focusHandoverId = null }: Props) {
   const [items, setItems] = useState<HandoverListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
   const [actionError, setActionError] = useState<string>()
+
+  useEffect(() => {
+    if (!focusHandoverId || loading) return
+    document
+      .getElementById(`handover-${focusHandoverId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focusHandoverId, loading, items])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -49,7 +60,15 @@ export function MyHandovers() {
       {actionError && <p className="mb-4 text-sm text-danger">{actionError}</p>}
       <ul className="border-t border-line">
         {items.map((h) => (
-          <li key={h.id} className="border-b border-line py-4">
+          <li
+            key={h.id}
+            id={`handover-${h.id}`}
+            className={
+              h.id === focusHandoverId
+                ? 'rounded-lg border-b border-line bg-teal-soft/40 px-3 py-4 ring-1 ring-teal'
+                : 'border-b border-line py-4'
+            }
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">

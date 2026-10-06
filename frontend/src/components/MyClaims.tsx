@@ -21,10 +21,21 @@ const STATUS_LABEL: Record<Claim['status'], string> = {
   REJECTED: 'Rejected',
 }
 
-export function MyClaims() {
+interface Props {
+  readonly focusClaimId?: string | null
+}
+
+export function MyClaims({ focusClaimId = null }: Props) {
   const [rows, setRows] = useState<ClaimRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
+
+  useEffect(() => {
+    if (!focusClaimId || loading) return
+    document
+      .getElementById(`claim-${focusClaimId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focusClaimId, loading, rows])
 
   useEffect(() => {
     let cancelled = false
@@ -75,7 +86,15 @@ export function MyClaims() {
   return (
     <ul className="border-t border-line">
       {rows.map(({ claim, report, handover }) => (
-        <li key={claim.id} className="border-b border-line py-4">
+        <li
+          key={claim.id}
+          id={`claim-${claim.id}`}
+          className={
+            claim.id === focusClaimId
+              ? 'rounded-lg border-b border-line bg-teal-soft/40 px-3 py-4 ring-1 ring-teal'
+              : 'border-b border-line py-4'
+          }
+        >
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex flex-wrap items-center gap-2">

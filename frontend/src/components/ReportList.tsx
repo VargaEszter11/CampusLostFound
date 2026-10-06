@@ -16,6 +16,7 @@ interface Props {
   readonly onReportChanged?: () => void
   readonly currentUser: string
   readonly currentUserEmail?: string
+  readonly initialSelected?: Report | null
 }
 
 const FILTER_OPTIONS: ReportFilter[] = ['ALL', 'LOST', 'FOUND', 'MINE']
@@ -51,13 +52,20 @@ function matchesSearch(r: Report, search: string): boolean {
     .some((field) => field.toLowerCase().includes(term))
 }
 
+interface ClaimSummary {
+  readonly pending: number
+  readonly inProgress: boolean
+}
+
+const NO_CLAIMS: ClaimSummary = { pending: 0, inProgress: false }
+
 function ReportRow({
   report,
-  pending,
+  summary,
   onSelect,
 }: {
   readonly report: Report
-  readonly pending: number
+  readonly summary: ClaimSummary
   readonly onSelect: () => void
 }) {
   return (
@@ -71,9 +79,14 @@ function ReportRow({
                 {report.type === 'LOST' ? 'Lost' : 'Found'}
               </span>
               {report.item.category && <span className="chip">{report.item.category}</span>}
-              {pending > 0 && (
+              {summary.pending > 0 && (
                 <span className="rounded bg-warn-soft px-2 py-0.5 text-xs font-medium text-warn">
-                  {pending} {pending === 1 ? 'claim' : 'claims'} pending
+                  {summary.pending} {summary.pending === 1 ? 'claim' : 'claims'} pending
+                </span>
+              )}
+              {summary.inProgress && (
+                <span className="rounded bg-teal/15 px-2 py-0.5 text-xs font-medium text-teal">
+                  Handover in progress
                 </span>
               )}
             </div>
@@ -96,13 +109,14 @@ export function ReportList({
   onReportChanged,
   currentUser,
   currentUserEmail,
+  initialSelected = null,
 }: Props) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<CategoryFilter>('ALL')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [selected, setSelected] = useState<Report | null>(null)
-  const [pendingByReport, setPendingByReport] = useState<Record<string, number>>({})
+  const [selected, setSelected] = useState<Report | null>(initialSelected)
+  const [summaryByReport, setSummaryByReport] = useState<Record<string, ClaimSummary>>({})
 
   const hasExtraFilters = category !== 'ALL' || dateFrom !== '' || dateTo !== ''
 
@@ -110,21 +124,25 @@ export function ReportList({
     let cancelled = false
     const owned = reports.filter((r) => isSameUser(currentUser, r.reporterName))
     if (owned.length === 0) {
-      setPendingByReport({})
+      setSummaryByReport({})
       return
     }
 
     void Promise.all(
       owned.map(async (r) => {
         const claims = await getClaimsForReport(r.id)
-        return [r.id, claims.filter((c) => c.status === 'PENDING').length] as const
+        const summary: ClaimSummary = {
+          pending: claims.filter((c) => c.status === 'PENDING').length,
+          inProgress: claims.some((c) => c.status === 'APPROVED'),
+        }
+        return [r.id, summary] as const
       }),
     )
       .then((entries) => {
-        if (!cancelled) setPendingByReport(Object.fromEntries(entries))
+        if (!cancelled) setSummaryByReport(Object.fromEntries(entries))
       })
       .catch(() => {
-        if (!cancelled) setPendingByReport({})
+        if (!cancelled) setSummaryByReport({})
       })
 
     return () => {
@@ -263,7 +281,7 @@ export function ReportList({
             <ReportRow
               key={r.id}
               report={r}
-              pending={filter === 'MINE' ? (pendingByReport[r.id] ?? 0) : 0}
+              summary={filter === 'MINE' ? (summaryByReport[r.id] ?? NO_CLAIMS) : NO_CLAIMS}
               onSelect={() => setSelected(r)}
             />
           ))}

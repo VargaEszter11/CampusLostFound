@@ -25,7 +25,7 @@ interface ApiReport {
   location: string
   date: string
   reporterName: string
-  reporterContact: string
+  reporterContact: string | null
   status: ReportStatus
   createdAt: string
 }
@@ -81,12 +81,6 @@ export async function createReport(input: NewReportInput): Promise<Report> {
       reporterContact: input.reporterContact,
     }),
   })
-  await throwIfNotOk(res)
-  return mapReport((await res.json()) as ApiReport)
-}
-
-export async function closeReport(reportId: string): Promise<Report> {
-  const res = await apiFetch(`/api/reports/${reportId}/close`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapReport((await res.json()) as ApiReport)
 }

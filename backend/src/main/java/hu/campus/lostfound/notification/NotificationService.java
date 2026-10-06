@@ -68,6 +68,14 @@ public class NotificationService {
     }
 
     @Transactional
+    public void delete(UUID notificationId) {
+        UUID userId = authSupport.requireUserId();
+        Notification notification = notificationRepository.findByIdAndUser_Id(notificationId, userId)
+                .orElseThrow(() -> new NotFoundException("Notification not found: " + notificationId));
+        notificationRepository.delete(notification);
+    }
+
+    @Transactional
     public NotificationListResponse markAllRead() {
         UUID userId = authSupport.requireUserId();
         notificationRepository.markAllReadForUser(userId, Instant.now());

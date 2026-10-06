@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
+  deleteNotification,
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   NOTIFICATIONS_CHANGED_EVENT,
   type AppNotification,
-  type NotificationType,
+  type NotificationTarget,
 } from '../storage/notificationStore'
 
-export type NotificationTab = 'OPEN_REPORTS' | 'MY_CLAIMS' | 'HANDOVERS'
-
 interface Props {
-  readonly onNavigate: (tab: NotificationTab) => void
+  readonly onNavigate: (target: NotificationTarget) => void
 }
 
 function relativeTime(iso: string): string {
@@ -25,15 +24,15 @@ function relativeTime(iso: string): string {
   return `${Math.floor(diffSec / 86400)}d ago`
 }
 
-function tabForType(type: NotificationType): NotificationTab {
-  switch (type) {
+function targetFor(n: AppNotification): NotificationTarget {
+  switch (n.type) {
     case 'CLAIM_CREATED':
-      return 'OPEN_REPORTS'
+      return { tab: 'OPEN_REPORTS', reportId: n.reportId }
     case 'CLAIM_APPROVED':
     case 'CLAIM_REJECTED':
-      return 'MY_CLAIMS'
+      return { tab: 'MY_CLAIMS', claimId: n.claimId }
     case 'HANDOVER_CONFIRMED':
-      return 'HANDOVERS'
+      return { tab: 'HANDOVERS', handoverId: n.handoverId }
   }
 }
 
@@ -115,7 +114,17 @@ export function NotificationBell({ onNavigate }: Props) {
       }
     }
     setOpen(false)
-    onNavigate(tabForType(n.type))
+    onNavigate(targetFor(n))
+  }
+
+  async function handleDelete(n: AppNotification) {
+    try {
+      await deleteNotification(n.id)
+      setItems((prev) => prev.filter((item) => item.id !== n.id))
+      if (!n.read) setUnreadCount((c) => Math.max(0, c - 1))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete notification')
+    }
   }
 
   async function handleMarkAll() {
@@ -157,19 +166,27 @@ export function NotificationBell({ onNavigate }: Props) {
             )}
             <ul>
               {items.map((n) => (
-                <li key={n.id} className="border-b border-line last:border-0">
+                <li key={n.id} className="flex items-start border-b border-line last:border-0">
                   <button
                     type="button"
                     onClick={() => void handleItemClick(n)}
                     className={
                       n.read
-                        ? 'flex w-full flex-col gap-0.5 px-3 py-2.5 text-left hover:bg-mint'
-                        : 'flex w-full flex-col gap-0.5 bg-teal-soft/50 px-3 py-2.5 text-left hover:bg-teal-soft'
+                        ? 'flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5 text-left hover:bg-mint'
+                        : 'flex min-w-0 flex-1 flex-col gap-0.5 bg-teal-soft/50 px-3 py-2.5 text-left hover:bg-teal-soft'
                     }
                   >
                     <span className="text-sm font-medium text-ink">{n.title}</span>
                     {n.body && <span className="text-xs text-ink-muted">{n.body}</span>}
                     <span className="text-[11px] text-ink-faint">{relativeTime(n.createdAt)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Delete notification"
+                    onClick={() => void handleDelete(n)}
+                    className="px-3 py-2.5 text-ink-faint transition hover:text-danger"
+                  >
+                    ✕
                   </button>
                 </li>
               ))}

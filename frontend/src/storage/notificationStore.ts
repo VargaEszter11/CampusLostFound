@@ -18,6 +18,15 @@ export interface AppNotification {
   createdAt: string
 }
 
+export type NotificationTab = 'OPEN_REPORTS' | 'MY_CLAIMS' | 'HANDOVERS'
+
+export interface NotificationTarget {
+  readonly tab: NotificationTab
+  readonly reportId?: string | null
+  readonly claimId?: string | null
+  readonly handoverId?: string | null
+}
+
 export interface NotificationList {
   items: AppNotification[]
   unreadCount: number
@@ -77,6 +86,11 @@ export async function markNotificationRead(id: string): Promise<AppNotification>
   const res = await apiFetch(`/api/notifications/${id}/read`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapItem((await res.json()) as ApiNotification)
+}
+
+export async function deleteNotification(id: string): Promise<void> {
+  const res = await apiFetch(`/api/notifications/${id}`, { method: 'DELETE' })
+  await throwIfNotOk(res)
 }
 
 export async function markAllNotificationsRead(): Promise<NotificationList> {

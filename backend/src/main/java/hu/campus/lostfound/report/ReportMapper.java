@@ -10,7 +10,7 @@ public final class ReportMapper {
     private ReportMapper() {
     }
 
-    public static ReportResponse toResponse(Report report) {
+    public static ReportResponse toResponse(Report report, boolean revealContact) {
         Item item = report.getItem();
         return new ReportResponse(
                 report.getId(),
@@ -24,7 +24,7 @@ public final class ReportMapper {
                 report.getLocation(),
                 report.getOccurredOn(),
                 report.getReporter().getDisplayName(),
-                report.getReporterContact(),
+                revealContact ? report.getReporterContact() : null,
                 report.getStatus(),
                 report.getCreatedAt()
         );

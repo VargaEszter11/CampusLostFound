@@ -5,7 +5,8 @@ import { LoginScreen } from './components/LoginScreen'
 import { MyClaims } from './components/MyClaims'
 import { MyHandovers } from './components/MyHandovers'
 import { NotificationBell } from './components/NotificationBell'
-import { getOpenReports } from './storage/reportStore'
+import { getOpenReports, getReport } from './storage/reportStore'
+import type { NotificationTarget } from './storage/notificationStore'
 import {
   clearSession,
   getSession,
@@ -31,6 +32,8 @@ function App() {
   const [reportsLoading, setReportsLoading] = useState(false)
   const [reportsError, setReportsError] = useState<string>()
   const [filter, setFilter] = useState<ReportFilter>('ALL')
+  const [focus, setFocus] = useState<(NotificationTarget & { key: number }) | null>(null)
+  const [focusedReport, setFocusedReport] = useState<Report | null>(null)
 
   const currentUser = session?.displayName ?? null
 
@@ -72,7 +75,17 @@ function App() {
 
   function selectTab(next: Tab) {
     setTab(next)
+    setFocus(null)
     if (next === 'OPEN_REPORTS') void refresh()
+  }
+
+  async function navigateTo(target: NotificationTarget) {
+    const focusedReport =
+      target.tab === 'OPEN_REPORTS' && target.reportId ? await getReport(target.reportId) : undefined
+    setFocusedReport(focusedReport ?? null)
+    setTab(target.tab)
+    setFocus({ ...target, key: Date.now() })
+    if (target.tab === 'OPEN_REPORTS') void refresh()
   }
 
   return (
@@ -87,8 +100,8 @@ function App() {
           </div>
           <div className="flex shrink-0 items-center gap-3 pt-1">
             <NotificationBell
-              onNavigate={(next) => {
-                selectTab(next)
+              onNavigate={(target) => {
+                void navigateTo(target)
               }}
             />
             <div className="hidden text-right text-sm sm:block">
@@ -162,6 +175,8 @@ function App() {
               <p className="text-ink-faint">Loading reports…</p>
             ) : (
               <ReportList
+                key={focus?.key ?? 'list'}
+                initialSelected={focusedReport}
                 reports={openReports}
                 filter={filter}
                 onFilterChange={setFilter}
@@ -178,14 +193,20 @@ function App() {
         {tab === 'MY_CLAIMS' && (
           <div key="claims" className="panel-enter mt-8">
             <h2 className="brand-display mb-5 text-2xl text-ink">My claims</h2>
-            <MyClaims />
+            <MyClaims
+              key={focus?.key ?? 'claims'}
+              focusClaimId={focus?.tab === 'MY_CLAIMS' ? (focus.claimId ?? null) : null}
+            />
           </div>
         )}
 
         {tab === 'HANDOVERS' && (
           <div key="handovers" className="panel-enter mt-8">
             <h2 className="brand-display mb-5 text-2xl text-ink">Handovers</h2>
-            <MyHandovers />
+            <MyHandovers
+              key={focus?.key ?? 'handovers'}
+              focusHandoverId={focus?.tab === 'HANDOVERS' ? (focus.handoverId ?? null) : null}
+            />
           </div>
         )}
       </div>

@@ -18,7 +18,7 @@ export interface Report {
   location: string
   date: string
   reporterName: string
-  reporterContact: string
+  reporterContact: string | null
   status: ReportStatus
   createdAt: string
 }
