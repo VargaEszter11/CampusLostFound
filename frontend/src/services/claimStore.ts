@@ -1,5 +1,6 @@
-import type { Claim, ClaimStatus, Handover, HandoverCode } from '../domain/types'
+import type { Claim, Handover } from '../domain/types'
 import { apiFetch, throwIfNotOk } from '../api/http'
+import { mapHandover, type ApiHandover } from './handoverStore'
 
 export interface NewClaimInput {
   reportId: string
@@ -7,42 +8,10 @@ export interface NewClaimInput {
   reason?: string
 }
 
-interface ApiClaim {
-  id: string
-  reportId: string
-  claimantName: string
-  claimantContact: string
-  reason: string | null
-  status: ClaimStatus
-}
-
-interface ApiHandover {
-  id: string
-  claimId: string
-  handoverCode: string
-  confirmed: boolean
-  date: string | null
-}
+type ApiClaim = Omit<Claim, 'reason'> & { reason: string | null }
 
 function mapClaim(dto: ApiClaim): Claim {
-  return {
-    id: dto.id,
-    reportId: dto.reportId,
-    claimantName: dto.claimantName,
-    claimantContact: dto.claimantContact,
-    reason: dto.reason ?? undefined,
-    status: dto.status,
-  }
-}
-
-function mapHandover(dto: ApiHandover): Handover {
-  return {
-    id: dto.id,
-    claimId: dto.claimId,
-    handoverCode: dto.handoverCode as HandoverCode,
-    confirmed: dto.confirmed,
-    date: dto.date ?? undefined,
-  }
+  return { ...dto, reason: dto.reason ?? undefined }
 }
 
 export async function getClaimsForReport(reportId: string): Promise<Claim[]> {
@@ -89,10 +58,4 @@ export async function rejectClaim(claimId: string): Promise<Claim> {
   const res = await apiFetch(`/api/claims/${claimId}/reject`, { method: 'POST' })
   await throwIfNotOk(res)
   return mapClaim((await res.json()) as ApiClaim)
-}
-
-export async function confirmHandover(reportId: string): Promise<Handover> {
-  const res = await apiFetch(`/api/reports/${reportId}/handover/confirm`, { method: 'POST' })
-  await throwIfNotOk(res)
-  return mapHandover((await res.json()) as ApiHandover)
 }

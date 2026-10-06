@@ -1,20 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  confirmHandoverById,
-  getMyHandovers,
-  type HandoverListItem,
-} from '../storage/handoverStore'
-import { notifyNotificationsChanged } from '../storage/notificationStore'
+import { useEffect } from 'react'
+import { useMyHandovers } from '../hooks/useMyHandovers'
 
 interface Props {
   readonly focusHandoverId?: string | null
 }
 
 export function MyHandovers({ focusHandoverId = null }: Props) {
-  const [items, setItems] = useState<HandoverListItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>()
-  const [actionError, setActionError] = useState<string>()
+  const { items, loading, error, actionError, confirm } = useMyHandovers()
 
   useEffect(() => {
     if (!focusHandoverId || loading) return
@@ -22,36 +14,6 @@ export function MyHandovers({ focusHandoverId = null }: Props) {
       .getElementById(`handover-${focusHandoverId}`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [focusHandoverId, loading, items])
-
-  const load = useCallback(async () => {
-    try {
-      setItems(await getMyHandovers())
-      setError(undefined)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load handovers')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    void getMyHandovers()
-      .then((data) => {
-        if (cancelled) return
-        setItems(data)
-        setError(undefined)
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load handovers')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   if (loading) {
     return <p className="text-ink-faint">Loading handovers…</p>
@@ -63,9 +25,7 @@ export function MyHandovers({ focusHandoverId = null }: Props) {
 
   if (items.length === 0) {
     return (
-      <p className="text-ink-faint">
-        No handovers yet. Approve a claim on one of your reports to start a handover.
-      </p>
+      <p className="text-ink-faint">No handovers yet. Approve a claim on one of your reports to start a handover.</p>
     )
   }
 
@@ -125,21 +85,7 @@ export function MyHandovers({ focusHandoverId = null }: Props) {
             </div>
 
             {h.yourRole === 'REPORTER' && !h.confirmed && (
-              <button
-                type="button"
-                onClick={() => {
-                  setActionError(undefined)
-                  void confirmHandoverById(h.id)
-                    .then(() => {
-                      notifyNotificationsChanged()
-                      return load()
-                    })
-                    .catch((err: unknown) => {
-                      setActionError(err instanceof Error ? err.message : 'Failed to confirm handover')
-                    })
-                }}
-                className="btn-primary mt-3"
-              >
+              <button type="button" onClick={() => confirm(h.id)} className="btn-primary mt-3">
                 Mark as handed over
               </button>
             )}

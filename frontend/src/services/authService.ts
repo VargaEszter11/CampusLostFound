@@ -1,5 +1,5 @@
-import type { AuthSession } from '../storage/authStore'
-import { apiUrl, throwIfNotOk } from './http'
+import type { AuthSession } from '../session/session'
+import { apiUrl, throwIfNotOk } from '../api/http'
 
 interface AuthResponse {
   token: string

@@ -41,3 +41,32 @@ export interface Handover {
   date?: string
   confirmed: boolean
 }
+
+export interface HandoverListItem extends Handover {
+  reportId: string
+  itemName: string
+  reportType: ReportType
+  reporterName: string
+  claimantName: string
+  claimantContact: string
+  reporterContact: string
+  yourRole: 'REPORTER' | 'CLAIMANT'
+}
+
+export type NotificationType =
+  | 'CLAIM_CREATED'
+  | 'CLAIM_APPROVED'
+  | 'CLAIM_REJECTED'
+  | 'HANDOVER_CONFIRMED'
+
+export interface AppNotification {
+  id: string
+  type: NotificationType
+  title: string
+  body: string | null
+  reportId: string | null
+  claimId: string | null
+  handoverId: string | null
+  read: boolean
+  createdAt: string
+}

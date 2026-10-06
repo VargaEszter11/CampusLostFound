@@ -1,9 +1,9 @@
-package hu.campus.lostfound.report;
+package hu.campus.lostfound.workflow;
 
-import hu.campus.lostfound.report.ReportStatus;
-import hu.campus.lostfound.report.ReportService;
 import hu.campus.lostfound.report.CreateReportRequest;
 import hu.campus.lostfound.report.ReportResponse;
+import hu.campus.lostfound.report.ReportService;
+import hu.campus.lostfound.report.ReportStatus;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -22,19 +22,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReportController {
 
     private final ReportService reportService;
+    private final ReportViewService reportViewService;
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, ReportViewService reportViewService) {
         this.reportService = reportService;
+        this.reportViewService = reportViewService;
     }
 
     @GetMapping
     public List<ReportResponse> list(@RequestParam(required = false) ReportStatus status) {
-        return reportService.list(status);
+        return reportViewService.list(status);
     }
 
     @GetMapping("/{id}")
     public ReportResponse get(@PathVariable UUID id) {
-        return reportService.get(id);
+        return reportViewService.get(id);
     }
 
     @PostMapping

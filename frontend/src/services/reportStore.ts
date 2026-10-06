@@ -1,4 +1,4 @@
-import type { ItemId, Report, ReportStatus, ReportType } from '../domain/types'
+import type { Item, ItemId, Report, ReportStatus, ReportType } from '../domain/types'
 import { apiFetch, throwIfNotOk } from '../api/http'
 
 export interface NewReportInput {
@@ -11,41 +11,22 @@ export interface NewReportInput {
   reporterContact: string
 }
 
-interface ApiItem {
-  id: string
-  name: string
+type ApiItem = Omit<Item, 'description' | 'category'> & {
   description: string | null
   category: string | null
 }
 
-interface ApiReport {
-  id: string
-  type: ReportType
-  item: ApiItem
-  location: string
-  date: string
-  reporterName: string
-  reporterContact: string | null
-  status: ReportStatus
-  createdAt: string
-}
+type ApiReport = Omit<Report, 'item'> & { item: ApiItem }
 
 function mapReport(dto: ApiReport): Report {
   return {
-    id: dto.id,
-    type: dto.type,
+    ...dto,
     item: {
+      ...dto.item,
       id: dto.item.id as ItemId,
-      name: dto.item.name,
       description: dto.item.description ?? undefined,
       category: dto.item.category ?? undefined,
     },
-    location: dto.location,
-    date: dto.date,
-    reporterName: dto.reporterName,
-    reporterContact: dto.reporterContact,
-    status: dto.status,
-    createdAt: dto.createdAt,
   }
 }
 

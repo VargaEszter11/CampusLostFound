@@ -150,7 +150,6 @@ curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/reports?statu
 |--------|------|-------------|
 | `GET` | `/api/reports/{reportId}/claims` | Claims on a report (reporter only) |
 | `GET` | `/api/reports/{reportId}/handover` | Approved handover (reporter or claimant) |
-| `POST` | `/api/reports/{reportId}/handover/confirm` | Confirm handover + close report |
 | `GET` | `/api/claims` | Claims for the authenticated user |
 | `POST` | `/api/claims` | Submit a claim (claimant = authenticated user) |
 | `POST` | `/api/claims/{id}/approve` | Approve (reporter only; rejects other pending) |
@@ -163,7 +162,7 @@ curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/reports?statu
 | `GET` | `/api/handovers` | Handovers where the user is reporter or claimant |
 | `POST` | `/api/handovers/{id}/confirm` | Confirm handover + close report |
 
-Also available via report routes: `GET/POST /api/reports/{id}/handover[/confirm]`.
+Also available via report routes: `GET /api/reports/{id}/handover`.
 
 Create claim body:
 
@@ -182,9 +181,10 @@ backend/src/main/java/hu/campus/lostfound/
   LostFoundApplication.java
   auth/         JWT + Spring Security, login/register/Google
   notification/ In-app notifications
-  report/       Report + Item entities, repos, service, controllers, DTOs
+  report/       Report + Item entities, repos, service, DTOs, report access policy
   claim/        Claim entity, repo, service, controller, DTOs
   handover/     Handover entity, repo, service, controller, DTOs
+  workflow/     Application layer: claim approval, handover queries, report views, report/claim controllers
   user/         User entity, repo, service
   shared/       Exceptions, CORS, API error handler
 ```

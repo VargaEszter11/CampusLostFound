@@ -44,6 +44,15 @@ export function getAuthToken(): string | null {
   return getSession()?.token ?? null
 }
 
-export function isSameUser(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase()
+
+const AUTH_EXPIRED_EVENT = 'lostfound:auth-expired'
+
+export function expireSession(): void {
+  clearSession()
+  window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+}
+
+export function subscribeToSessionExpiry(onExpired: () => void): () => void {
+  window.addEventListener(AUTH_EXPIRED_EVENT, onExpired)
+  return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired)
 }

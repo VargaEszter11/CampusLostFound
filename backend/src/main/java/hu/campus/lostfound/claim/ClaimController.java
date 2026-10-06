@@ -1,9 +1,5 @@
 package hu.campus.lostfound.claim;
 
-import hu.campus.lostfound.claim.ClaimService;
-import hu.campus.lostfound.claim.ClaimResponse;
-import hu.campus.lostfound.claim.CreateClaimRequest;
-import hu.campus.lostfound.handover.HandoverResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -35,11 +31,6 @@ public class ClaimController {
     @ResponseStatus(HttpStatus.CREATED)
     public ClaimResponse create(@Valid @RequestBody CreateClaimRequest request) {
         return claimService.create(request);
-    }
-
-    @PostMapping("/{id}/approve")
-    public HandoverResponse approve(@PathVariable UUID id) {
-        return claimService.approve(id);
     }
 
     @PostMapping("/{id}/reject")

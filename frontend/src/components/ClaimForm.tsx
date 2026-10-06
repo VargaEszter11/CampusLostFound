@@ -1,7 +1,5 @@
-import { useState } from 'react'
 import type { ReportType } from '../domain/types'
-import { contactError } from '../domain/contactValidation'
-import { createClaim } from '../storage/claimStore'
+import { useClaimForm } from '../hooks/useClaimForm'
 import { FieldError } from './FieldError'
 
 interface Props {
@@ -21,25 +19,14 @@ export function ClaimForm({
   onSubmitted,
   onCancel,
 }: Props) {
-  const [claimantContact, setClaimantContact] = useState(defaultContact)
-  const [reason, setReason] = useState('')
-  const [contactErrorMsg, setContactErrorMsg] = useState<string>()
+  const form = useClaimForm(reportId, defaultContact, onSubmitted)
 
   return (
     <form
       noValidate
       onSubmit={(e) => {
         e.preventDefault()
-        const error = contactError(claimantContact)
-        if (error) {
-          setContactErrorMsg(error)
-          return
-        }
-        createClaim({ reportId, claimantContact, reason: reason || undefined })
-          .then(() => onSubmitted())
-          .catch((err: unknown) => {
-            setContactErrorMsg(err instanceof Error ? err.message : 'Failed to submit claim')
-          })
+        form.submit()
       }}
       className="space-y-4"
     >
@@ -58,16 +45,13 @@ export function ClaimForm({
         </label>
         <input
           id="claimantContact"
-          value={claimantContact}
-          onChange={(e) => {
-            setClaimantContact(e.target.value)
-            if (contactErrorMsg) setContactErrorMsg(undefined)
-          }}
+          value={form.claimantContact}
+          onChange={(e) => form.changeContact(e.target.value)}
           placeholder="email or phone"
-          aria-invalid={contactErrorMsg ? true : undefined}
+          aria-invalid={form.contactErrorMsg ? true : undefined}
           className="field-input"
         />
-        <FieldError message={contactErrorMsg} />
+        <FieldError message={form.contactErrorMsg} />
       </div>
 
       <div>
@@ -76,8 +60,8 @@ export function ClaimForm({
         </label>
         <textarea
           id="reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
+          value={form.reason}
+          onChange={(e) => form.setReason(e.target.value)}
           rows={2}
           placeholder={
             reportType === 'FOUND' ? "A detail that proves it's yours" : 'Details that help confirm the match'

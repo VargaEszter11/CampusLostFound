@@ -1,6 +1,7 @@
 package hu.campus.lostfound.claim;
 
 import hu.campus.lostfound.report.Report;
+import hu.campus.lostfound.shared.BadRequestException;
 import hu.campus.lostfound.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -91,7 +92,19 @@ public class Claim {
         return createdAt;
     }
 
-    public void setStatus(ClaimStatus status) {
-        this.status = status;
+    public void approve() {
+        requirePending();
+        this.status = ClaimStatus.APPROVED;
+    }
+
+    public void reject() {
+        requirePending();
+        this.status = ClaimStatus.REJECTED;
+    }
+
+    private void requirePending() {
+        if (status != ClaimStatus.PENDING) {
+            throw new BadRequestException("This claim was already resolved");
+        }
     }
 }

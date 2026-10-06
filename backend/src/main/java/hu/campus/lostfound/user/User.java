@@ -3,6 +3,7 @@ package hu.campus.lostfound.user;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import hu.campus.lostfound.shared.BadRequestException;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
@@ -63,15 +64,20 @@ public class User {
         return createdAt;
     }
 
-    public void setPasswordHash(String passwordHash) {
+    public void assignPassword(String passwordHash) {
         this.passwordHash = passwordHash;
     }
 
-    public void setGoogleSub(String googleSub) {
-        this.googleSub = googleSub;
+    public void linkGoogleAccount(String subject) {
+        if (googleSub != null && !googleSub.equals(subject)) {
+            throw new BadRequestException("This email is linked to a different Google account");
+        }
+        this.googleSub = subject;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void adoptDisplayNameIfBlank(String candidate) {
+        if ((displayName == null || displayName.isBlank()) && candidate != null && !candidate.isBlank()) {
+            this.displayName = candidate.trim();
+        }
     }
 }

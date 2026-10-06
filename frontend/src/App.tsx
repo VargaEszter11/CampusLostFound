@@ -1,169 +1,38 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ReportForm } from './components/ReportForm'
-import { ReportList, type ReportFilter } from './components/ReportList'
+import { useCallback, useState } from 'react'
+import { AppHeader } from './components/AppHeader'
+import { AppTabs } from './components/AppTabs'
 import { LoginScreen } from './components/LoginScreen'
 import { MyClaims } from './components/MyClaims'
 import { MyHandovers } from './components/MyHandovers'
-import { NotificationBell } from './components/NotificationBell'
-import { getOpenReports, getReport } from './storage/reportStore'
-import type { NotificationTarget } from './storage/notificationStore'
-import {
-  clearSession,
-  getSession,
-  isSameUser,
-  type AuthSession,
-} from './storage/authStore'
-import { AUTH_EXPIRED_EVENT } from './api/http'
-import type { Report } from './domain/types'
-
-type Tab = 'REPORT' | 'OPEN_REPORTS' | 'MY_CLAIMS' | 'HANDOVERS'
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'REPORT', label: 'Report' },
-  { id: 'OPEN_REPORTS', label: 'Open reports' },
-  { id: 'MY_CLAIMS', label: 'My claims' },
-  { id: 'HANDOVERS', label: 'Handovers' },
-]
+import { ReportForm } from './components/ReportForm'
+import { ReportList, type ReportFilter } from './components/ReportList'
+import { useAppNavigation } from './hooks/useAppNavigation'
+import { useOpenReports } from './hooks/useOpenReports'
+import { useSession } from './hooks/useSession'
+import { isOwnerOf } from './domain/rules'
 
 function App() {
-  const [session, setSessionState] = useState<AuthSession | null>(() => getSession())
-  const [tab, setTab] = useState<Tab>('REPORT')
-  const [openReports, setOpenReports] = useState<Report[]>([])
-  const [reportsLoading, setReportsLoading] = useState(true)
-  const [reportsError, setReportsError] = useState<string>()
+  const { session, setSession, signOut } = useSession()
+  const clearAuth = useCallback(() => setSession(null), [setSession])
+  const { openReports, loading, error, refresh } = useOpenReports(session, clearAuth)
+  const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(refresh)
   const [filter, setFilter] = useState<ReportFilter>('ALL')
-  const [focus, setFocus] = useState<(NotificationTarget & { key: number }) | null>(null)
-  const [focusedReport, setFocusedReport] = useState<Report | null>(null)
 
-  const currentUser = session?.displayName ?? null
-
-  useEffect(() => {
-    const onExpired = () => setSessionState(null)
-    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired)
-    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired)
-  }, [])
-
-  const refresh = useCallback(async () => {
-    try {
-      setOpenReports(await getOpenReports())
-      setReportsError(undefined)
-    } catch (err) {
-      if (!getSession()) {
-        setSessionState(null)
-        return
-      }
-      setReportsError(err instanceof Error ? err.message : 'Failed to load reports')
-    } finally {
-      setReportsLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!session) return
-    let cancelled = false
-    void getOpenReports()
-      .then((reports) => {
-        if (cancelled) return
-        setOpenReports(reports)
-        setReportsError(undefined)
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return
-        if (!getSession()) {
-          setSessionState(null)
-          return
-        }
-        setReportsError(err instanceof Error ? err.message : 'Failed to load reports')
-      })
-      .finally(() => {
-        if (!cancelled) setReportsLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [session])
-
-  if (!session || !currentUser) {
-    return <LoginScreen onLogin={setSessionState} />
+  if (!session) {
+    return <LoginScreen onLogin={setSession} />
   }
 
-  const otherOpenCount = openReports.filter((r) => !isSameUser(currentUser, r.reporterName)).length
-  const myOpenCount = openReports.filter((r) => isSameUser(currentUser, r.reporterName)).length
+  const currentUser = session.displayName
+  const otherOpenCount = openReports.filter((r) => !isOwnerOf(r, currentUser)).length
+  const myOpenCount = openReports.filter((r) => isOwnerOf(r, currentUser)).length
   const headerCount = filter === 'MINE' ? myOpenCount : otherOpenCount
-
-  function selectTab(next: Tab) {
-    setTab(next)
-    setFocus(null)
-    if (next === 'OPEN_REPORTS') void refresh()
-  }
-
-  async function navigateTo(target: NotificationTarget) {
-    const focusedReport =
-      target.tab === 'OPEN_REPORTS' && target.reportId ? await getReport(target.reportId) : undefined
-    setFocusedReport(focusedReport ?? null)
-    setTab(target.tab)
-    setFocus({ ...target, key: Date.now() })
-    if (target.tab === 'OPEN_REPORTS') void refresh()
-  }
 
   return (
     <div className="app-shell">
       <div className="relative mx-auto max-w-2xl px-4 py-12 sm:py-16">
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="brand-display text-4xl text-ink sm:text-5xl">Lost & Found</h1>
-            <p className="mt-2 max-w-md text-base text-ink-muted">
-              Report and reclaim items on campus.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-3 pt-1">
-            <NotificationBell
-              onNavigate={(target) => {
-                void navigateTo(target)
-              }}
-            />
-            <div className="hidden text-right text-sm sm:block">
-              <p className="font-medium text-ink">{currentUser}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  clearSession()
-                  setSessionState(null)
-                }}
-                className="text-ink-muted underline-offset-2 hover:text-teal hover:underline"
-              >
-                Sign out
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                clearSession()
-                setSessionState(null)
-              }}
-              className="text-sm text-ink-muted underline-offset-2 hover:text-teal hover:underline sm:hidden"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
+        <AppHeader userName={currentUser} onNavigate={(target) => void navigateTo(target)} onSignOut={signOut} />
 
-        <nav className="flex flex-wrap gap-x-6 gap-y-2 border-b border-line">
-          {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => selectTab(id)}
-              className={
-                tab === id
-                  ? 'tab-active pb-2.5 text-sm'
-                  : 'pb-2.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink'
-              }
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+        <AppTabs active={tab} onSelect={selectTab} />
 
         {tab === 'REPORT' && (
           <div key="report" className="panel-enter mt-8">
@@ -188,8 +57,8 @@ function App() {
                 {headerCount} {headerCount === 1 ? 'report' : 'reports'}
               </span>
             </div>
-            {reportsError && <p className="mb-4 text-sm text-danger">{reportsError}</p>}
-            {reportsLoading && openReports.length === 0 ? (
+            {error && <p className="mb-4 text-sm text-danger">{error}</p>}
+            {loading && openReports.length === 0 ? (
               <p className="text-ink-faint">Loading reports…</p>
             ) : (
               <ReportList

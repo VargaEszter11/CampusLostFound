@@ -1,13 +1,7 @@
-import { useEffect, useState } from 'react'
-import type { Claim, Handover, Report } from '../domain/types'
-import { getHandoverForReport, getMyClaims } from '../storage/claimStore'
-import { getReport } from '../storage/reportStore'
-
-interface ClaimRow {
-  readonly claim: Claim
-  readonly report: Report
-  readonly handover?: Handover
-}
+import { useEffect } from 'react'
+import type { Claim } from '../domain/types'
+import { isApproved } from '../domain/rules'
+import { useMyClaims } from '../hooks/useMyClaims'
 
 const STATUS_CLASS: Record<Claim['status'], string> = {
   PENDING: 'status-pending',
@@ -26,9 +20,7 @@ interface Props {
 }
 
 export function MyClaims({ focusClaimId = null }: Props) {
-  const [rows, setRows] = useState<ClaimRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>()
+  const { rows, loading, error } = useMyClaims()
 
   useEffect(() => {
     if (!focusClaimId || loading) return
@@ -36,38 +28,6 @@ export function MyClaims({ focusClaimId = null }: Props) {
       .getElementById(`claim-${focusClaimId}`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [focusClaimId, loading, rows])
-
-  useEffect(() => {
-    let cancelled = false
-
-    void getMyClaims()
-      .then(async (claims) => {
-        const results = await Promise.all(
-          claims.map(async (claim): Promise<ClaimRow | null> => {
-            const report = await getReport(claim.reportId)
-            if (!report) return null
-            const handover =
-              claim.status === 'APPROVED' ? await getHandoverForReport(report.id) : undefined
-            return { claim, report, handover }
-          }),
-        )
-        if (!cancelled) {
-          setRows(results.filter((row): row is ClaimRow => row !== null))
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load claims')
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   if (loading) {
     return <p className="text-ink-faint">Loading claims…</p>
@@ -97,9 +57,7 @@ export function MyClaims({ focusClaimId = null }: Props) {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-ink">{report.item.name}</span>
-                <span
-                  className={`rounded px-2 py-0.5 text-xs font-semibold ${STATUS_CLASS[claim.status]}`}
-                >
+                <span className={`rounded px-2 py-0.5 text-xs font-semibold ${STATUS_CLASS[claim.status]}`}>
                   {STATUS_LABEL[claim.status]}
                 </span>
               </div>
@@ -110,7 +68,7 @@ export function MyClaims({ focusClaimId = null }: Props) {
             </div>
           </div>
 
-          {claim.status === 'APPROVED' && handover && (
+          {isApproved(claim) && handover && (
             <div className="info-callout mt-3 space-y-1 text-sm">
               <p>{report.reporterContact}</p>
               <p>

@@ -67,7 +67,7 @@ public class UserService {
         }
 
         User user = new User(UUID.randomUUID(), name, normalizedEmail, Instant.now());
-        user.setPasswordHash(passwordEncoder.encode(password));
+        user.assignPassword(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
 
@@ -99,13 +99,8 @@ public class UserService {
         Optional<User> byEmail = userRepository.findByEmailIgnoreCase(normalizedEmail);
         if (byEmail.isPresent()) {
             User existing = byEmail.get();
-            if (existing.getGoogleSub() != null && !existing.getGoogleSub().equals(subject)) {
-                throw new BadRequestException("This email is linked to a different Google account");
-            }
-            existing.setGoogleSub(subject);
-            if (existing.getDisplayName() == null || existing.getDisplayName().isBlank()) {
-                existing.setDisplayName(identity.displayName().trim());
-            }
+            existing.linkGoogleAccount(subject);
+            existing.adoptDisplayNameIfBlank(identity.displayName());
             return userRepository.save(existing);
         }
 
@@ -114,7 +109,7 @@ public class UserService {
             name = normalizedEmail;
         }
         User user = new User(UUID.randomUUID(), name, normalizedEmail, Instant.now());
-        user.setGoogleSub(subject);
+        user.linkGoogleAccount(subject);
         return userRepository.save(user);
     }
 }

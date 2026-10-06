@@ -111,7 +111,7 @@ public class Report {
         return createdAt;
     }
 
-    public void setStatus(ReportStatus status) {
-        this.status = status;
+    public void close() {
+        this.status = ReportStatus.CLOSED;
     }
 }

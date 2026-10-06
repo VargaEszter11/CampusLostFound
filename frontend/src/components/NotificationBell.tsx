@@ -1,15 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  deleteNotification,
-  getNotifications,
-  markAllNotificationsRead,
-  markNotificationRead,
-  NOTIFICATIONS_CHANGED_EVENT,
-  notifyNotificationsChanged,
-  type AppNotification,
-  type NotificationTarget,
-} from '../storage/notificationStore'
+import type { AppNotification } from '../domain/types'
+import { useNotifications } from '../hooks/useNotifications'
+import { notifyNotificationsChanged, type NotificationTarget } from '../services/notificationStore'
 
 interface Props {
   readonly onNavigate: (target: NotificationTarget) => void
@@ -39,41 +32,11 @@ function targetFor(n: AppNotification): NotificationTarget {
 
 export function NotificationBell({ onNavigate }: Props) {
   const [open, setOpen] = useState(false)
-  const [items, setItems] = useState<AppNotification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>()
   const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 })
+  const { items, unreadCount, loading, error, markRead, remove, markAll } = useNotifications()
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    const load = () => {
-      void getNotifications()
-        .then((data) => {
-          if (cancelled) return
-          setItems(data.items)
-          setUnreadCount(data.unreadCount)
-          setError(undefined)
-        })
-        .catch((err: unknown) => {
-          if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load notifications')
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false)
-        })
-    }
-    load()
-    const interval = window.setInterval(load, 20_000)
-    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, load)
-    return () => {
-      cancelled = true
-      window.clearInterval(interval)
-      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, load)
-    }
-  }, [])
 
   useLayoutEffect(() => {
     if (!open || !buttonRef.current) return
@@ -103,37 +66,9 @@ export function NotificationBell({ onNavigate }: Props) {
   }, [open])
 
   async function handleItemClick(n: AppNotification) {
-    if (!n.read) {
-      try {
-        await markNotificationRead(n.id)
-        setItems((prev) => prev.map((item) => (item.id === n.id ? { ...item, read: true } : item)))
-        setUnreadCount((c) => Math.max(0, c - 1))
-      } catch {
-        // still navigate
-      }
-    }
+    await markRead(n)
     setOpen(false)
     onNavigate(targetFor(n))
-  }
-
-  async function handleDelete(n: AppNotification) {
-    try {
-      await deleteNotification(n.id)
-      setItems((prev) => prev.filter((item) => item.id !== n.id))
-      if (!n.read) setUnreadCount((c) => Math.max(0, c - 1))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete notification')
-    }
-  }
-
-  async function handleMarkAll() {
-    try {
-      const data = await markAllNotificationsRead()
-      setItems(data.items)
-      setUnreadCount(data.unreadCount)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to mark all read')
-    }
   }
 
   const menu = open
@@ -148,7 +83,7 @@ export function NotificationBell({ onNavigate }: Props) {
             {unreadCount > 0 && (
               <button
                 type="button"
-                onClick={() => void handleMarkAll()}
+                onClick={() => void markAll()}
                 className="text-xs font-medium text-teal hover:underline"
               >
                 Mark all read
@@ -156,9 +91,7 @@ export function NotificationBell({ onNavigate }: Props) {
             )}
           </div>
           <div className="max-h-80 overflow-y-auto">
-            {loading && items.length === 0 && (
-              <p className="px-3 py-4 text-sm text-ink-faint">Loading…</p>
-            )}
+            {loading && items.length === 0 && <p className="px-3 py-4 text-sm text-ink-faint">Loading…</p>}
             {error && <p className="px-3 py-3 text-sm text-danger">{error}</p>}
             {!loading && !error && items.length === 0 && (
               <p className="px-3 py-4 text-sm text-ink-faint">No notifications yet.</p>
@@ -182,7 +115,7 @@ export function NotificationBell({ onNavigate }: Props) {
                   <button
                     type="button"
                     aria-label="Delete notification"
-                    onClick={() => void handleDelete(n)}
+                    onClick={() => void remove(n)}
                     className="px-3 py-2.5 text-ink-faint transition hover:text-danger"
                   >
                     ✕

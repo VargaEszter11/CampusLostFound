@@ -1,7 +1,5 @@
 import { API_BASE } from './config'
-import { clearSession, getAuthToken } from '../storage/authStore'
-
-export const AUTH_EXPIRED_EVENT = 'lostfound:auth-expired'
+import { expireSession, getAuthToken } from '../session/session'
 
 export async function throwIfNotOk(res: Response): Promise<void> {
   if (!res.ok) {
@@ -34,8 +32,7 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
 
   const res = await fetch(apiUrl(path), { ...init, headers })
   if (res.status === 401) {
-    clearSession()
-    window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+    expireSession()
   }
   return res
 }

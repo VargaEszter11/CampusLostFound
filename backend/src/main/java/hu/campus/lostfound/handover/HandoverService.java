@@ -2,13 +2,12 @@ package hu.campus.lostfound.handover;
 
 import hu.campus.lostfound.auth.AuthSupport;
 import hu.campus.lostfound.claim.Claim;
-import hu.campus.lostfound.claim.ClaimMapper;
 import hu.campus.lostfound.handover.Handover;
 import hu.campus.lostfound.handover.HandoverRepository;
 import hu.campus.lostfound.notification.NotificationService;
 import hu.campus.lostfound.notification.NotificationType;
 import hu.campus.lostfound.report.Report;
-import hu.campus.lostfound.report.ReportStatus;
+import hu.campus.lostfound.report.ReportAccess;
 import hu.campus.lostfound.shared.BadRequestException;
 import hu.campus.lostfound.shared.ForbiddenException;
 import hu.campus.lostfound.shared.NotFoundException;
@@ -25,15 +24,18 @@ public class HandoverService {
     private final HandoverRepository handoverRepository;
     private final AuthSupport authSupport;
     private final NotificationService notificationService;
+    private final ReportAccess reportAccess;
 
     public HandoverService(
             HandoverRepository handoverRepository,
             AuthSupport authSupport,
-            NotificationService notificationService
+            NotificationService notificationService,
+            ReportAccess reportAccess
     ) {
         this.handoverRepository = handoverRepository;
         this.authSupport = authSupport;
         this.notificationService = notificationService;
+        this.reportAccess = reportAccess;
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +53,7 @@ public class HandoverService {
         User current = authSupport.requireUser();
         Claim claim = handover.getClaim();
         UUID currentId = current.getId();
-        boolean isReporter = claim.getReport().getReporter().getId().equals(currentId);
+        boolean isReporter = reportAccess.isReporter(claim.getReport(), currentId);
         boolean isClaimant = claim.getClaimant().getId().equals(currentId);
         if (!isReporter && !isClaimant) {
             throw new ForbiddenException("Only the reporter or claimant can confirm handover");
@@ -62,7 +64,7 @@ public class HandoverService {
         Instant now = Instant.now();
         handover.confirm(now);
         Report report = handover.getClaim().getReport();
-        report.setStatus(ReportStatus.CLOSED);
+        report.close();
 
         User recipient = isReporter ? claim.getClaimant() : claim.getReport().getReporter();
         String itemName = report.getItem().getName();
@@ -76,15 +78,15 @@ public class HandoverService {
                 handover.getId()
         );
 
-        return ClaimMapper.toResponse(handover);
+        return HandoverMapper.toResponse(handover);
     }
 
-    private static HandoverListItemResponse toListItem(Handover handover, UUID viewerId) {
+    private HandoverListItemResponse toListItem(Handover handover, UUID viewerId) {
         Claim claim = handover.getClaim();
         Report report = claim.getReport();
         String reporterName = report.getReporter().getDisplayName();
         String claimantName = claim.getClaimant().getDisplayName();
-        String yourRole = report.getReporter().getId().equals(viewerId) ? "REPORTER" : "CLAIMANT";
+        String yourRole = reportAccess.isReporter(report, viewerId) ? "REPORTER" : "CLAIMANT";
         return new HandoverListItemResponse(
                 handover.getId(),
                 claim.getId(),
