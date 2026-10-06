@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { clearSession, getSession, subscribeToSessionExpiry, type AuthSession } from '../session/session'
 
 export function useSession() {
@@ -6,10 +6,10 @@ export function useSession() {
 
   useEffect(() => subscribeToSessionExpiry(() => setSession(null)), [])
 
-  function signOut() {
+  const signOut = useCallback(() => {
     clearSession()
     setSession(null)
-  }
+  }, [])
 
   return { session, setSession, signOut }
 }

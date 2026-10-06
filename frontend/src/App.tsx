@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { AppTabs } from './components/AppTabs'
 import { LoginScreen } from './components/LoginScreen'
@@ -10,17 +10,27 @@ import { useAppNavigation } from './hooks/useAppNavigation'
 import { useOpenReports } from './hooks/useOpenReports'
 import { useSession } from './hooks/useSession'
 import { isOwnerOf } from './domain/rules'
+import type { AuthSession } from './session/session'
 
 function App() {
   const { session, setSession, signOut } = useSession()
-  const clearAuth = useCallback(() => setSession(null), [setSession])
-  const { openReports, loading, error, refresh } = useOpenReports(session, clearAuth)
-  const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(refresh)
-  const [filter, setFilter] = useState<ReportFilter>('ALL')
 
   if (!session) {
     return <LoginScreen onLogin={setSession} />
   }
+
+  return <Dashboard key={session.userId} session={session} onSignOut={signOut} />
+}
+
+interface DashboardProps {
+  readonly session: AuthSession
+  readonly onSignOut: () => void
+}
+
+function Dashboard({ session, onSignOut }: DashboardProps) {
+  const { openReports, loading, error, refresh } = useOpenReports(session, onSignOut)
+  const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(refresh)
+  const [filter, setFilter] = useState<ReportFilter>('ALL')
 
   const currentUser = session.displayName
   const otherOpenCount = openReports.filter((r) => !isOwnerOf(r, currentUser)).length
@@ -30,7 +40,7 @@ function App() {
   return (
     <div className="app-shell">
       <div className="relative mx-auto max-w-2xl px-4 py-12 sm:py-16">
-        <AppHeader userName={currentUser} onNavigate={(target) => void navigateTo(target)} onSignOut={signOut} />
+        <AppHeader userName={currentUser} onNavigate={(target) => void navigateTo(target)} onSignOut={onSignOut} />
 
         <AppTabs active={tab} onSelect={selectTab} />
 
