@@ -12,6 +12,7 @@ A négy fő use case API + PostgreSQL mögött fut:
 - **Átadás jóváhagyása** — kész (Handovers fül is)
 - **Bejelentkezés** — kész (e-mail + jelszó, Google Sign-In, JWT)
 - **Értesítések** — kész (in-app: claim / approve / reject / handover)
+- **Admin oldal** — kész (`#/admin`: minden bejelentés, a lezártak is, elérhetőségekkel, igénylésszámmal és átadási adatokkal)
 
 Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.md](docs/todo.md).
 
@@ -23,6 +24,7 @@ Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.m
 - All / Lost / Found csak mások nyitott bejelentéseit listázza; a sajátok a **My reports** szűrőn jelennek meg. Az Open reports oldalon kategória és dátumtartomány szerint is szűrhető a lista.
 - Amíg egy jóváhagyott igénylés átadásra vár, új igénylés nem nyújtható be ugyanarra a bejelentésre.
 - A szerver a JWT-ből azonosítja a felhasználót; a kliens nem küldhet más nevében bejelentést vagy igénylést.
+- Adminok: a gyökér `.env` `ADMIN_EMAILS` változójában vesszővel elválasztott e-mail-címek (kis-/nagybetű nem számít). Csak ők érik el a `/api/admin/**` végpontokat, és csak nekik jelenik meg az **Admin** gomb a fejlécben.
 
 ## Technológiák
 
@@ -42,6 +44,14 @@ Típusok: [frontend/src/domain/types.ts](frontend/src/domain/types.ts).
 Séma: [backend/src/main/resources/db/migration/V1__init.sql](backend/src/main/resources/db/migration/V1__init.sql).
 
 ## Indítás
+
+### 0. Környezeti változók
+
+Egyetlen `.env` fájl kell, a repó gyökerében — ezt olvassa a backend (`../.env`) és a frontend (Vite `envDir: '..'`) is:
+
+```bash
+cp .env.example .env   # GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, SPRING_DATASOURCE_*, ADMIN_EMAILS
+```
 
 ### 1. Adatbázis
 
@@ -69,7 +79,6 @@ Demó felhasználók (jelszó mindháromnál `demo123`):
 
 ```bash
 cd frontend
-cp .env.example .env.local   # set VITE_GOOGLE_CLIENT_ID for Google Sign-In
 npm install
 npm run dev
 ```

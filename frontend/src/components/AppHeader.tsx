@@ -5,9 +5,10 @@ interface Props {
   readonly userName: string
   readonly onNavigate: (target: NotificationTarget) => void
   readonly onSignOut: () => void
+  readonly onOpenAdmin?: () => void
 }
 
-export function AppHeader({ userName, onNavigate, onSignOut }: Props) {
+export function AppHeader({ userName, onNavigate, onSignOut, onOpenAdmin }: Props) {
   return (
     <div className="mb-8 flex items-start justify-between gap-4">
       <div>
@@ -15,6 +16,11 @@ export function AppHeader({ userName, onNavigate, onSignOut }: Props) {
         <p className="mt-2 max-w-md text-base text-ink-muted">Report and reclaim items on campus.</p>
       </div>
       <div className="flex shrink-0 items-center gap-3 pt-1">
+        {onOpenAdmin && (
+          <button type="button" onClick={onOpenAdmin} className="chip">
+            Admin
+          </button>
+        )}
         <NotificationBell onNavigate={onNavigate} />
         <div className="hidden text-right text-sm sm:block">
           <p className="font-medium text-ink">{userName}</p>

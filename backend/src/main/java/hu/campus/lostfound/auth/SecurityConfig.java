@@ -1,5 +1,6 @@
 package hu.campus.lostfound.auth;
 
+import hu.campus.lostfound.admin.AdminAccess;
 import hu.campus.lostfound.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,22 +29,30 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final AdminAccess adminAccess;
 
-    public SecurityConfig(JwtService jwtService, UserRepository userRepository, ObjectMapper objectMapper) {
+    public SecurityConfig(
+            JwtService jwtService,
+            UserRepository userRepository,
+            ObjectMapper objectMapper,
+            AdminAccess adminAccess
+    ) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
+        this.adminAccess = adminAccess;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtService, userRepository);
+        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtService, userRepository, adminAccess);
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/google").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )

@@ -19,5 +19,5 @@
 - [x] Open reports: filter by category and date range
 - [x] UI redesign (dark monochrome + teal)
 - [ ] LLM category suggestion
-- [ ] admin page for every lost/found item, past items too
+- [x] admin page for every lost/found item, past items too
 - [ ] tests

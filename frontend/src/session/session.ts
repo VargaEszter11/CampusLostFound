@@ -3,6 +3,7 @@ export interface AuthSession {
   userId: string
   displayName: string
   email: string
+  isAdmin: boolean
 }
 
 const SESSION_KEY = 'lostfound.authSession'
@@ -23,6 +24,7 @@ export function getSession(): AuthSession | null {
         userId: parsed.userId,
         displayName: parsed.displayName,
         email: parsed.email,
+        isAdmin: parsed.isAdmin === true,
       }
     }
   } catch {

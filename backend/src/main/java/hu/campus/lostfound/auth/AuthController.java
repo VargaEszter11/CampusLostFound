@@ -1,5 +1,6 @@
 package hu.campus.lostfound.auth;
 
+import hu.campus.lostfound.admin.AdminAccess;
 import hu.campus.lostfound.user.User;
 import hu.campus.lostfound.user.UserService;
 import jakarta.validation.Valid;
@@ -18,11 +19,18 @@ public class AuthController {
     private final UserService userService;
     private final JwtService jwtService;
     private final AuthSupport authSupport;
+    private final AdminAccess adminAccess;
 
-    public AuthController(UserService userService, JwtService jwtService, AuthSupport authSupport) {
+    public AuthController(
+            UserService userService,
+            JwtService jwtService,
+            AuthSupport authSupport,
+            AdminAccess adminAccess
+    ) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.authSupport = authSupport;
+        this.adminAccess = adminAccess;
     }
 
     @PostMapping("/register")
@@ -51,12 +59,13 @@ public class AuthController {
     }
 
     private AuthResponse toResponse(User user) {
-        AuthUser principal = new AuthUser(user);
+        AuthUser principal = new AuthUser(user, adminAccess.isAdmin(user.getEmail()));
         return new AuthResponse(
                 jwtService.createToken(principal),
                 user.getId(),
                 user.getDisplayName(),
-                user.getEmail()
+                user.getEmail(),
+                principal.isAdmin()
         );
     }
 }

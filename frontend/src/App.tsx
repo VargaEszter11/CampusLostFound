@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AdminPage } from './components/AdminPage'
 import { AppHeader } from './components/AppHeader'
 import { AppTabs } from './components/AppTabs'
 import { LoginScreen } from './components/LoginScreen'
@@ -7,6 +8,7 @@ import { MyHandovers } from './components/MyHandovers'
 import { ReportForm } from './components/ReportForm'
 import { ReportList, type ReportFilter } from './components/ReportList'
 import { useAppNavigation } from './hooks/useAppNavigation'
+import { useHashRoute } from './hooks/useHashRoute'
 import { useOpenReports } from './hooks/useOpenReports'
 import { useSession } from './hooks/useSession'
 import { isOwnerOf } from './domain/rules'
@@ -19,15 +21,43 @@ function App() {
     return <LoginScreen onLogin={setSession} />
   }
 
-  return <Dashboard key={session.userId} session={session} onSignOut={signOut} />
+  return <Main key={session.userId} session={session} onSignOut={signOut} />
+}
+
+interface MainProps {
+  readonly session: AuthSession
+  readonly onSignOut: () => void
+}
+
+function Main({ session, onSignOut }: MainProps) {
+  const { route, navigate } = useHashRoute()
+
+  if (route === 'ADMIN' && session.isAdmin) {
+    return (
+      <div className="app-shell">
+        <div className="relative mx-auto max-w-4xl px-4 py-12 sm:py-16">
+          <AdminPage onBack={() => navigate('APP')} />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <Dashboard
+      session={session}
+      onSignOut={onSignOut}
+      onOpenAdmin={session.isAdmin ? () => navigate('ADMIN') : undefined}
+    />
+  )
 }
 
 interface DashboardProps {
   readonly session: AuthSession
   readonly onSignOut: () => void
+  readonly onOpenAdmin?: () => void
 }
 
-function Dashboard({ session, onSignOut }: DashboardProps) {
+function Dashboard({ session, onSignOut, onOpenAdmin }: DashboardProps) {
   const { openReports, loading, error, refresh } = useOpenReports(session, onSignOut)
   const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(refresh)
   const [filter, setFilter] = useState<ReportFilter>('ALL')
@@ -40,7 +70,12 @@ function Dashboard({ session, onSignOut }: DashboardProps) {
   return (
     <div className="app-shell">
       <div className="relative mx-auto max-w-2xl px-4 py-12 sm:py-16">
-        <AppHeader userName={currentUser} onNavigate={(target) => void navigateTo(target)} onSignOut={onSignOut} />
+        <AppHeader
+          userName={currentUser}
+          onNavigate={(target) => void navigateTo(target)}
+          onSignOut={onSignOut}
+          onOpenAdmin={onOpenAdmin}
+        />
 
         <AppTabs active={tab} onSelect={selectTab} />
 

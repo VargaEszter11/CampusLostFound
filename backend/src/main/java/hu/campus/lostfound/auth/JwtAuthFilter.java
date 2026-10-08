@@ -1,5 +1,6 @@
 package hu.campus.lostfound.auth;
 
+import hu.campus.lostfound.admin.AdminAccess;
 import hu.campus.lostfound.user.User;
 import hu.campus.lostfound.user.UserRepository;
 import io.jsonwebtoken.JwtException;
@@ -19,10 +20,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final AdminAccess adminAccess;
 
-    public JwtAuthFilter(JwtService jwtService, UserRepository userRepository) {
+    public JwtAuthFilter(JwtService jwtService, UserRepository userRepository, AdminAccess adminAccess) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.adminAccess = adminAccess;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private void setAuthentication(HttpServletRequest request, User user) {
-        AuthUser principal = new AuthUser(user);
+        AuthUser principal = new AuthUser(user, adminAccess.isAdmin(user.getEmail()));
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

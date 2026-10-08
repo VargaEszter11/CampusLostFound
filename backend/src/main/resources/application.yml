@@ -5,11 +5,11 @@ spring:
     name: campus-lostfound
 
   datasource:
-    # Override with env vars for cloud DBs (Neon, etc.):
-    #   SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
-    url: jdbc:postgresql://localhost:5432/campus_lost_found
-    username: campus
-    password: campus
+    # Set in the repo-root .env (or as env vars) for other DBs (Neon, etc.).
+    # Placeholders are needed: keys from an imported .env are not relaxed-bound like real env vars.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/campus_lost_found}
+    username: ${SPRING_DATASOURCE_USERNAME:campus}
+    password: ${SPRING_DATASOURCE_PASSWORD:campus}
 
   jpa:
     hibernate:
@@ -25,11 +25,11 @@ spring:
     locations: classpath:db/migration
     # Schema was applied once via psql; baseline so Boot does not re-run V1/V2.
     # Remove these two lines on a fresh empty database if you prefer Flyway-only setup.
-    baseline-on-migrate: true
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:true}
     baseline-version: "2"
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 app:
   jwt:
@@ -40,3 +40,6 @@ app:
     # Web OAuth client ID from Google Cloud Console (same as VITE_GOOGLE_CLIENT_ID)
     # Set via env GOOGLE_CLIENT_ID — do not put the ID in this file (YAML breaks on ":")
     client-id: ${GOOGLE_CLIENT_ID:}
+  admin:
+    # Comma-separated e-mail addresses of admin users (case-insensitive), via env ADMIN_EMAILS
+    emails: ${ADMIN_EMAILS:}

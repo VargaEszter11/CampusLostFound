@@ -14,12 +14,14 @@ public class AuthUser implements UserDetails {
     private final String email;
     private final String displayName;
     private final String passwordHash;
+    private final boolean admin;
 
-    public AuthUser(User user) {
+    public AuthUser(User user, boolean admin) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.displayName = user.getDisplayName();
         this.passwordHash = user.getPasswordHash();
+        this.admin = admin;
     }
 
     public UUID getId() {
@@ -34,8 +36,15 @@ public class AuthUser implements UserDetails {
         return email;
     }
 
+    public boolean isAdmin() {
+        return admin;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (admin) {
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 

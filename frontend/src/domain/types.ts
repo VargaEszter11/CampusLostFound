@@ -70,3 +70,21 @@ export interface AppNotification {
   read: boolean
   createdAt: string
 }
+
+export interface AdminHandoverSummary {
+  id: string
+  claimantName: string
+  claimantEmail: string
+  claimantContact: string
+  handoverCode: HandoverCode
+  confirmed: boolean
+  confirmedAt: string | null
+}
+
+export interface AdminReport extends Omit<Report, 'reporterContact'> {
+  reporterEmail: string
+  reporterContact: string
+  claimCount: number
+  pendingClaimCount: number
+  handover: AdminHandoverSummary | null
+}

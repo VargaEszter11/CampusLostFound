@@ -11,22 +11,25 @@ public final class ReportMapper {
     }
 
     public static ReportResponse toResponse(Report report, boolean revealContact) {
-        Item item = report.getItem();
         return new ReportResponse(
                 report.getId(),
                 report.getType(),
-                new ItemResponse(
-                        item.getId(),
-                        item.getName(),
-                        item.getDescription(),
-                        item.getCategory()
-                ),
+                toItemResponse(report.getItem()),
                 report.getLocation(),
                 report.getOccurredOn(),
                 report.getReporter().getDisplayName(),
                 revealContact ? report.getReporterContact() : null,
                 report.getStatus(),
                 report.getCreatedAt()
+        );
+    }
+
+    public static ItemResponse toItemResponse(Item item) {
+        return new ItemResponse(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getCategory()
         );
     }
 }

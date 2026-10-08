@@ -50,6 +50,9 @@ public interface HandoverRepository extends JpaRepository<Handover, UUID> {
             """)
     List<Handover> findByParticipantId(@Param("userId") UUID userId);
 
+    @EntityGraph(attributePaths = {"claim", "claim.claimant", "claim.report"})
+    List<Handover> findAllBy();
+
     @Override
     @EntityGraph(attributePaths = {"claim", "claim.claimant", "claim.report", "claim.report.item", "claim.report.reporter"})
     Optional<Handover> findById(UUID id);

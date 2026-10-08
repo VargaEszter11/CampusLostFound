@@ -43,7 +43,7 @@ cd backend
 mvn spring-boot:run
 ```
 
-See [`.env.example`](.env.example) for the variable names.
+Or put them in the single repo-root `.env` (see [`../.env.example`](../.env.example)); the backend imports `../.env`, so start it from `backend/`.
 
 ## Migrations
 
@@ -106,6 +106,15 @@ Example Google login:
 ```json
 { "idToken": "<Google Identity Services credential JWT>" }
 ```
+
+## Admin API
+
+Admins are listed in env `ADMIN_EMAILS` (comma-separated, case-insensitive), e.g. `ADMIN_EMAILS=anna.kiss@example.com,bence.toth@example.com`.
+Checked on every request, so changes apply after a backend restart without re-issuing tokens. `GET /api/auth/me` returns `admin: true|false`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/admin/reports` | Every report (open and closed), with reporter email/contact, claim counts and handover details. `403` for non-admins. |
 
 ## Notifications API
 

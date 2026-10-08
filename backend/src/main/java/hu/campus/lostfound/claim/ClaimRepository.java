@@ -22,5 +22,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
     @EntityGraph(attributePaths = {"claimant", "report", "report.item"})
     List<Claim> findByClaimant_IdOrderByCreatedAtDesc(UUID claimantId);
 
+    @EntityGraph(attributePaths = {"report"})
+    List<Claim> findAllBy();
+
     boolean existsByReport_IdAndStatus(UUID reportId, ClaimStatus status);
 }
