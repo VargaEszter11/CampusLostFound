@@ -1,0 +1,55 @@
+# One-command setup: `docker compose up --build`, then open http://localhost:5173
+# Reads the repo-root .env (GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, ADMIN_EMAILS, …).
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: campus_lost_found
+      POSTGRES_USER: campus
+      POSTGRES_PASSWORD: campus
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      # Host port for psql / running the backend outside Docker (matches .env's localhost:5434)
+      - "${DB_HOST_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus -d campus_lost_found"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Inside Docker the DB is the `db` service, not localhost:5434 from .env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/campus_lost_found
+      SPRING_DATASOURCE_USERNAME: campus
+      SPRING_DATASOURCE_PASSWORD: campus
+      SERVER_PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_HOST_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the JS bundle at build time
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    depends_on:
+      - backend
+    ports:
+      # Keep 5173: it's the origin registered for Google Sign-In
+      - "${FRONTEND_HOST_PORT:-5173}:80"
+    restart: unless-stopped
+
+volumes:
+  db-data:

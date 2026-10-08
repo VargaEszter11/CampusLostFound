@@ -43,7 +43,28 @@ Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.m
 Típusok: [frontend/src/domain/types.ts](frontend/src/domain/types.ts).  
 Séma: [backend/src/main/resources/db/migration/V1__init.sql](backend/src/main/resources/db/migration/V1__init.sql).
 
-## Indítás
+## Indítás Dockerrel (ajánlott)
+
+Csak Docker kell (Java, Node és PostgreSQL nem):
+
+```bash
+cp .env.example .env    # töltsd ki: GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, ADMIN_EMAILS
+docker compose up -d --build
+```
+
+Ezután: **http://localhost:5173** (frontend, nginx a `/api`-t a backendre proxyzza). A backend a `8080`-on, a PostgreSQL a `5434`-en is elérhető. Üres adatbázison a Flyway létrehozza a sémát és a demó felhasználókat.
+
+| Parancs | Mit csinál |
+|---------|------------|
+| `docker compose up -d --build` | build + indítás (kódváltozás vagy `VITE_*` módosítás után is ezt) |
+| `docker compose restart backend` | `.env` módosítás után (pl. `ADMIN_EMAILS`) |
+| `docker compose logs -f backend` | backend log |
+| `docker compose down` | leállítás (az adatok megmaradnak a `db-data` volume-ban) |
+| `docker compose down -v` | leállítás **és az adatbázis törlése** |
+
+Portok felülírhatók a `.env`-ben: `FRONTEND_HOST_PORT`, `BACKEND_HOST_PORT`, `DB_HOST_PORT`. A Google Sign-In csak a Google Console-ban regisztrált originen (alapból `http://localhost:5173`) működik.
+
+## Indítás Docker nélkül (fejlesztéshez)
 
 ### 0. Környezeti változók
 
