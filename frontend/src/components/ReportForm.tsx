@@ -1,5 +1,6 @@
 import { CATEGORIES } from '../domain/categories'
 import { todayIso } from '../domain/format'
+import { useCategorySuggestion } from '../hooks/useCategorySuggestion'
 import { useReportForm } from '../hooks/useReportForm'
 import { DatePicker } from './DatePicker'
 import { FieldError } from './FieldError'
@@ -12,6 +13,7 @@ interface Props {
 
 export function ReportForm({ reporterName, defaultContact = '', onCreated }: Props) {
   const form = useReportForm(defaultContact, onCreated)
+  const categorySuggestion = useCategorySuggestion(form.itemName, form.itemDescription)
 
   return (
     <form
@@ -66,9 +68,12 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="itemCategory" className="field-label">
-            Category
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="itemCategory" className="field-label">
+              Category
+            </label>
+            {categorySuggestion.loading && <span className="text-xs text-ink-faint">Suggesting…</span>}
+          </div>
           <select
             id="itemCategory"
             value={form.itemCategory}
@@ -81,6 +86,19 @@ export function ReportForm({ reporterName, defaultContact = '', onCreated }: Pro
               </option>
             ))}
           </select>
+          {categorySuggestion.suggestion && categorySuggestion.suggestion !== form.itemCategory && (
+            <p className="mt-1 text-xs text-ink-muted">
+              Suggested: <span className="font-medium text-ink">{categorySuggestion.suggestion}</span>{' '}
+              <button
+                type="button"
+                onClick={() => form.setItemCategory(categorySuggestion.suggestion as string)}
+                className="text-teal hover:underline"
+              >
+                Use
+              </button>
+            </p>
+          )}
+          {categorySuggestion.error && <p className="mt-1 text-xs text-danger">{categorySuggestion.error}</p>}
         </div>
         <div>
           <label htmlFor="date" className="field-label">

@@ -43,3 +43,9 @@ app:
   admin:
     # Comma-separated e-mail addresses of admin users (case-insensitive), via env ADMIN_EMAILS
     emails: ${ADMIN_EMAILS:}
+  deepseek:
+    # DeepSeek API key for AI category suggestions, via env DEEPSEEK_API_KEY. Suggestion endpoint
+    # returns an error if unset; the rest of the app works fine without it.
+    api-key: ${DEEPSEEK_API_KEY:}
+    base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+    model: ${DEEPSEEK_MODEL:deepseek-chat}
