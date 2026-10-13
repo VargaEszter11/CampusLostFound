@@ -21,3 +21,5 @@
 - [x] LLM category suggestion
 - [x] admin page for every lost/found item, past items too
 - [ ] tests
+- [ ] contract first API
+- [ ] errors
