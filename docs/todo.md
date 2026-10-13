@@ -18,6 +18,6 @@
 - [x] add notifications for claims and accept/decline and handovers
 - [x] Open reports: filter by category and date range
 - [x] UI redesign (dark monochrome + teal)
-- [ ] LLM category suggestion
+- [x] LLM category suggestion
 - [x] admin page for every lost/found item, past items too
 - [ ] tests

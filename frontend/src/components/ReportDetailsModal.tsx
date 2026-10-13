@@ -5,6 +5,7 @@ import { useModalDialog } from '../hooks/useModalDialog'
 import { useReportClaims } from '../hooks/useReportClaims'
 import { ClaimAction } from './ClaimAction'
 import { ClaimsPanel } from './ClaimsPanel'
+import { DeleteReportAction } from './DeleteReportAction'
 import { HandoverPanel } from './HandoverPanel'
 
 interface Props {
@@ -98,6 +99,16 @@ export function ReportDetailsModal({ report, onClose, onReportChanged, currentUs
           currentUserEmail={currentUserEmail}
           onSubmitted={() => {
             void afterChange()
+          }}
+        />
+      )}
+
+      {isOwner && (
+        <DeleteReportAction
+          reportId={report.id}
+          onDeleted={() => {
+            onReportChanged?.()
+            onClose()
           }}
         />
       )}

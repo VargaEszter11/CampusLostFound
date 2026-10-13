@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,10 +24,16 @@ public class ReportController {
 
     private final ReportService reportService;
     private final ReportViewService reportViewService;
+    private final ReportDeletionService reportDeletionService;
 
-    public ReportController(ReportService reportService, ReportViewService reportViewService) {
+    public ReportController(
+            ReportService reportService,
+            ReportViewService reportViewService,
+            ReportDeletionService reportDeletionService
+    ) {
         this.reportService = reportService;
         this.reportViewService = reportViewService;
+        this.reportDeletionService = reportDeletionService;
     }
 
     @GetMapping
@@ -48,5 +55,11 @@ public class ReportController {
     @PostMapping("/{id}/close")
     public ReportResponse close(@PathVariable UUID id) {
         return reportService.close(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        reportDeletionService.delete(id);
     }
 }

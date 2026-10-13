@@ -67,7 +67,9 @@ export function ReportList({
               key={r.id}
               report={r}
               summary={filter === 'MINE' ? (summaryByReport[r.id] ?? NO_CLAIMS) : NO_CLAIMS}
+              isOwner={isOwnerOf(r, currentUser)}
               onSelect={() => setSelected(r)}
+              onDeleted={() => onReportChanged?.()}
             />
           ))}
         </ul>

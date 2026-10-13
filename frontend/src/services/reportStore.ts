@@ -49,6 +49,11 @@ export async function getReport(reportId: string): Promise<Report | undefined> {
   return mapReport((await res.json()) as ApiReport)
 }
 
+export async function deleteReport(reportId: string): Promise<void> {
+  const res = await apiFetch(`/api/reports/${reportId}`, { method: 'DELETE' })
+  await throwIfNotOk(res)
+}
+
 export async function createReport(input: NewReportInput): Promise<Report> {
   const res = await apiFetch('/api/reports', {
     method: 'POST',

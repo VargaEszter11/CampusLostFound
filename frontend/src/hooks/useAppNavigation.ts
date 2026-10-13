@@ -7,10 +7,26 @@ export type Tab = 'REPORT' | 'OPEN_REPORTS' | 'MY_CLAIMS' | 'HANDOVERS'
 
 export type Focus = NotificationTarget & { key: number }
 
-export function useAppNavigation(onOpenReports: () => void) {
-  const [tab, setTab] = useState<Tab>('REPORT')
+const TABS: readonly Tab[] = ['REPORT', 'OPEN_REPORTS', 'MY_CLAIMS', 'HANDOVERS']
+
+function tabStorageKey(userId: string): string {
+  return `lostfound.tab.${userId}`
+}
+
+function readStoredTab(userId: string): Tab {
+  const raw = sessionStorage.getItem(tabStorageKey(userId))
+  return (TABS as readonly string[]).includes(raw ?? '') ? (raw as Tab) : 'REPORT'
+}
+
+export function useAppNavigation(userId: string, onOpenReports: () => void) {
+  const [tab, setTabState] = useState<Tab>(() => readStoredTab(userId))
   const [focus, setFocus] = useState<Focus | null>(null)
   const [focusedReport, setFocusedReport] = useState<Report | null>(null)
+
+  function setTab(next: Tab) {
+    setTabState(next)
+    sessionStorage.setItem(tabStorageKey(userId), next)
+  }
 
   function selectTab(next: Tab) {
     setTab(next)

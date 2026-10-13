@@ -59,7 +59,7 @@ interface DashboardProps {
 
 function Dashboard({ session, onSignOut, onOpenAdmin }: DashboardProps) {
   const { openReports, loading, error, refresh } = useOpenReports(session, onSignOut)
-  const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(refresh)
+  const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(session.userId, refresh)
   const [filter, setFilter] = useState<ReportFilter>('ALL')
 
   const currentUser = session.displayName
