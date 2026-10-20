@@ -60,4 +60,13 @@ class ApiExceptionHandlerTest {
         Map<String, String> fields = (Map<String, String>) response.getBody().get("fields");
         assertThat(fields).containsEntry("itemName", "must not be blank");
     }
+
+    @Test
+    void handleUnexpectedReturns500WithGenericMessage() {
+        ResponseEntity<Map<String, String>> response =
+                handler.handleUnexpected(new RuntimeException("db connection refused"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).containsEntry("error", "Something went wrong");
+    }
 }

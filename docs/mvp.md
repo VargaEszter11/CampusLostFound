@@ -24,7 +24,12 @@ A Campus Lost & Found egy egyetemi elveszett tárgyak rendszer, amelynek célja,
 - mezőszintű validáció: kötelező mezők, e-mail-cím vagy telefonszám formátum, jövőbeli dátum tiltása;
 - adatok a Spring Boot API-n / PostgreSQL-en keresztül mentődnek (nem `localStorage`);
 - védett API: a műveletek a JWT-ből azonosított felhasználóhoz kötődnek (nem kliens által küldött névhez);
-- in-app értesítések: új igénylés, jóváhagyás/elutasítás, átadás megerősítése — harang ikon, olvasatlan számláló, listából navigáció a megfelelő fülre.
+- in-app értesítések: új igénylés, jóváhagyás/elutasítás, átadás megerősítése — harang ikon, olvasatlan számláló, listából navigáció a megfelelő fülre; egyenként vagy egyszerre „mind olvasott"-ra jelölhetők, illetve egyenként törölhetők;
+- kategória-javaslat LLM-mel (DeepSeek API): a tárgy nevének/leírásának begépelése után automatikusan (rövid késleltetéssel) javaslatot ad a kategóriára egy rögzített kategórialistából; a felhasználó elfogadhatja vagy felülírhatja egy másik kategóriával; ha a szolgáltatás nincs beállítva a szerveren, vagy a hívás meghiúsul, a mező egyszerűen kézi kitöltésre vár (a bejelentés létrehozása ettől nem akadályozott);
+- saját bejelentés törlése — csak akkor engedélyezett, ha a bejelentésnek még nincs jóváhagyott igénylése;
+- **admin nézet**: a `app.admin.emails` listában szereplő e-mail-címmel bejelentkezett felhasználók egy külön admin API-n keresztül az összes bejelentést látják — a bejelentő teljes nevével és elérhetőségével (a normál elrejtési szabály nélkül), az igénylések számával (összes/függő), és az esetleges átadás részleteivel (igénylő adatai, átadási kód, megerősítés állapota); ez jelenleg csak megtekintési (read-only) nézet, törlés/szerkesztés admin jogon nincs;
+- automatizált tesztek: backend (JUnit + Mockito, 98 teszt) és frontend (Vitest + React Testing Library, 88 teszt), mindkettő a forráskóddal megegyező mappaszerkezetben, valódi hálózati hívás nélkül;
+- OpenAPI-specifikáció (`/v3/api-docs`, Swagger UI a `/swagger-ui/index.html`-en) automatikusan generálódik a backend kontrollereiből; a frontend TypeScript típusait ebből a specifikációból lehet generálni (`npm run generate:api`), hogy a kliens oldali típusok ne térjenek el a szerver válaszaitól.
 
 ## Fő felületi elemek
 
@@ -38,6 +43,26 @@ Az **Open reports** fülön keresőmező, típus-szűrők (All / Lost / Found / 
 
 A **My claims** fülön a felhasználó saját igényléseit követheti. A **Handovers** fülön az őt érintő átadások listája és a megerősítés található.
 
+## Kezelt hibák
+
+A backend egy központi hibakezelőn (`ApiExceptionHandler`) keresztül, egységes `{"error": "..."}` (validációnál `fields` mezővel kiegészített) JSON választ ad minden hibára, a megfelelő HTTP státuszkóddal. A frontend ezt egységesen jeleníti meg a felhasználónak.
+
+- **400 Bad Request** — hibás kérés:
+  - mezőszintű validációs hiba (pl. kötelező mező üres, érvénytelen e-mail/telefon formátum, jövőbeli dátum) — mezőnként külön üzenettel;
+  - saját bejelentésre próbál igénylést benyújtani a bejelentő;
+  - igénylés egy már nem nyitott (lezárt/átadott) bejelentésre, vagy olyan bejelentésre, amelynek már van jóváhagyott igénylése;
+  - jóváhagyott igénylésű bejelentés törlésének kísérlete;
+  - már megerősített átadás ismételt megerősítése;
+  - érvénytelen regisztrációs adatok (pl. foglalt e-mail);
+  - kategória-javaslat kérése, amikor a DeepSeek API nincs beállítva a szerveren, vagy a hívás meghiúsul.
+- **403 Forbidden** — jogosultsági hiba:
+  - nem a bejelentő próbálja lezárni, törölni, vagy egy igénylést jóváhagyni/elutasítani a bejelentésen;
+  - nem a bejelentő vagy az igénylő próbálja megtekinteni vagy megerősíteni egy átadást.
+- **404 Not Found** — ismeretlen azonosítóra hivatkozó kérés (nem létező bejelentés, igénylés, átadás vagy értesítés).
+- **500 Internal Server Error** — minden egyéb, váratlan kivétel; a szerver naplózza a részleteket, a kliens felé csak egy általános „Something went wrong" üzenet megy ki (nem szivárogtat belső implementációs részletet).
+- Admin API-t csak a konfigurált admin e-mail-címek érhetik el; mindenki más **403**-at kap rá (route-szinten kikényszerítve, `hasRole("ADMIN")`).
+- A frontend 401-es válasznál (lejárt/érvénytelen token) automatikusan kijelentkezteti a felhasználót és visszaviszi a bejelentkező képernyőre.
+
 ## Használt technológiák
 
 - Frontend: React, TypeScript, Vite, Tailwind CSS
@@ -46,4 +71,4 @@ A **My claims** fülön a felhasználó saját igényléseit követheti. A **Han
 
 ## Jelenlegi korlátok
 
-Nincs e-mail-ellenőrzés, jelszó-visszaállítás, refresh token, email/push értesítés, admin nézet, LLM kategória-javaslat, sem automatizált tesztek.
+Nincs e-mail-ellenőrzés, jelszó-visszaállítás, refresh token, sem email/push értesítés (csak in-app); az admin nézet csak megtekintésre korlátozott (nincs admin törlés/szerkesztés).
