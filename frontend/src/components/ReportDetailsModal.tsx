@@ -18,13 +18,14 @@ interface Props {
 
 export function ReportDetailsModal({ report, onClose, onReportChanged, currentUser, currentUserEmail }: Props) {
   const { dialogRef, handleClose } = useModalDialog(onClose)
+  const isOwner = isOwnerOf(report, currentUser)
   const { claims, handover, loading, error, approve, reject, confirm, afterChange } = useReportClaims(
     report.id,
+    isOwner,
     onReportChanged,
   )
 
   const isClosed = isReportClosed(report)
-  const isOwner = isOwnerOf(report, currentUser)
   const approvedClaim = findApprovedClaim(claims)
 
   return (
@@ -78,7 +79,9 @@ export function ReportDetailsModal({ report, onClose, onReportChanged, currentUs
       </dl>
 
       {error && <p className="mt-4 text-sm text-danger">{error}</p>}
-      {loading && <p className="mt-4 text-sm text-ink-faint">Loading claims…</p>}
+      {loading && (
+        <p className="mt-4 text-sm text-ink-faint">{isOwner ? 'Loading claims…' : 'Loading…'}</p>
+      )}
 
       <HandoverPanel
         handover={handover}

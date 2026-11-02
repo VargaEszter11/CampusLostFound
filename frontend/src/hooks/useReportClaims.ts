@@ -4,7 +4,7 @@ import { approveClaim, getClaimsForReport, getHandoverForReport, rejectClaim } f
 import { confirmHandoverById } from '../services/handoverStore'
 import { notifyNotificationsChanged } from '../services/notificationStore'
 
-export function useReportClaims(reportId: string, onChanged?: () => void) {
+export function useReportClaims(reportId: string, isOwner: boolean, onChanged?: () => void) {
   const [claims, setClaims] = useState<Claim[]>([])
   const [handover, setHandover] = useState<Handover | undefined>()
   const [loading, setLoading] = useState(true)
@@ -15,13 +15,21 @@ export function useReportClaims(reportId: string, onChanged?: () => void) {
     onChangedRef.current = onChanged
   }, [onChanged])
 
+  const load = useCallback(async () => {
+    const nextHandover = await getHandoverForReport(reportId)
+    const nextClaims = isOwner ? await getClaimsForReport(reportId) : []
+    return { nextClaims, nextHandover }
+  }, [reportId, isOwner])
+
   useEffect(() => {
     let cancelled = false
-    void Promise.all([getClaimsForReport(reportId), getHandoverForReport(reportId)])
-      .then(([nextClaims, nextHandover]) => {
+    setError(undefined)
+    void load()
+      .then(({ nextClaims, nextHandover }) => {
         if (cancelled) return
         setClaims(nextClaims)
         setHandover(nextHandover)
+        setError(undefined)
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load claims')
@@ -32,16 +40,13 @@ export function useReportClaims(reportId: string, onChanged?: () => void) {
     return () => {
       cancelled = true
     }
-  }, [reportId])
+  }, [load])
 
   const reload = useCallback(async () => {
-    const [nextClaims, nextHandover] = await Promise.all([
-      getClaimsForReport(reportId),
-      getHandoverForReport(reportId),
-    ])
+    const { nextClaims, nextHandover } = await load()
     setClaims(nextClaims)
     setHandover(nextHandover)
-  }, [reportId])
+  }, [load])
 
   const afterChange = useCallback(async () => {
     setError(undefined)

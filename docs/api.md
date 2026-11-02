@@ -125,7 +125,7 @@ CORS is restricted to `http://localhost:5173` / `http://127.0.0.1:5173`.
 
 **200 → `HandoverResponse`**: `{ id, claimId, handoverCode, confirmed, date }`
 
-**Errors**: 404 "Report not found: {reportId}" · 404 "No handover for this report" (⚠ this one is a raw `ResponseStatusException`, so its body may not follow the standard `{"error": ...}` shape) · 403 "You cannot view this handover" (caller is neither the reporter nor the claimant)
+**Errors**: 404 "Report not found: {reportId}" · 404 "No handover for this report" · 403 "You cannot view this handover" (caller is neither the reporter nor the claimant)
 
 ---
 
