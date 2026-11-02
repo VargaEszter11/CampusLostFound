@@ -45,6 +45,7 @@
 
 - Does this app have proper error handling — does it raise distinct, meaningful error types for different failure cases?
 - Yes — add a catch-all handler for unexpected exceptions so every error response has a consistent shape.
+- Fix approval when more than one user claims the same item: the report details modal shows "Something went wrong" and the owner can't approve any claim. 
 
 ## Documentation
 

@@ -3,14 +3,13 @@ package hu.campus.lostfound.workflow;
 import hu.campus.lostfound.claim.ClaimResponse;
 import hu.campus.lostfound.claim.ClaimService;
 import hu.campus.lostfound.handover.HandoverResponse;
+import hu.campus.lostfound.shared.NotFoundException;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/reports/{reportId}")
@@ -32,6 +31,6 @@ public class ReportClaimController {
     @GetMapping("/handover")
     public HandoverResponse getHandover(@PathVariable UUID reportId) {
         return handoverQueryService.findHandoverForReport(reportId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No handover for this report"));
+                .orElseThrow(() -> new NotFoundException("No handover for this report"));
     }
 }
