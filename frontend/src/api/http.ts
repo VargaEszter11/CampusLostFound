@@ -6,9 +6,10 @@ export async function throwIfNotOk(res: Response): Promise<void> {
     let message = `Request failed (${res.status})`
     try {
       const body = (await res.json()) as { error?: string; fields?: Record<string, string>; message?: string }
-      if (body.error) message = body.error
+      // Field messages say what is wrong; the accompanying error is just "Validation failed"
+      if (body.fields && Object.keys(body.fields).length > 0) message = Object.values(body.fields).join(', ')
+      else if (body.error) message = body.error
       else if (body.message) message = body.message
-      else if (body.fields) message = Object.values(body.fields).join(', ')
     } catch {
       // keep default
     }

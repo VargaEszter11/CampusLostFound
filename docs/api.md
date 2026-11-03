@@ -93,14 +93,14 @@ CORS is restricted to `http://localhost:5173` / `http://127.0.0.1:5173`.
 | `type` | `LOST` \| `FOUND` | required |
 | `itemName` | string | required, max 255 |
 | `itemDescription` | string | optional, max 4000 |
-| `itemCategory` | string | optional, max 100 |
+| `itemCategory` | string | optional; one of the fixed categories (see `/api/categories/suggest`) |
 | `location` | string | required, max 255 |
 | `date` | date | required, today or earlier |
 | `reporterContact` | string | required, max 255, email or phone |
 
 **201 → `ReportResponse`** (`reporterContact` visible to the creator)
 
-**Errors**: 400 validation failures · 400 "Contact is required" · 400 "Enter a valid email address or phone number"
+**Errors**: 400 validation failures · 400 "Contact is required" · 400 "Enter a valid email address or phone number" · 400 "Unknown category: {value}"
 
 ### `POST /api/reports/{id}/close` — authenticated
 
@@ -112,7 +112,7 @@ CORS is restricted to `http://localhost:5173` / `http://127.0.0.1:5173`.
 
 ### `DELETE /api/reports/{id}` — authenticated
 
-**204 No Content**. Cascades: deletes the report's claims, then the report, then its item.
+**204 No Content**. Cascades: deletes the notifications pointing at the report, its claims, then the report, then its item.
 
 **Errors**: 404 "Report not found: {id}" · 403 "Only the reporter can delete this report" · 400 "Cannot delete a report with an approved claim"
 

@@ -1,6 +1,8 @@
 package hu.campus.lostfound.report;
 
 import hu.campus.lostfound.auth.AuthSupport;
+import hu.campus.lostfound.category.Categories;
+import hu.campus.lostfound.shared.BadRequestException;
 import hu.campus.lostfound.shared.NotFoundException;
 import hu.campus.lostfound.user.User;
 import hu.campus.lostfound.user.UserService;
@@ -41,13 +43,17 @@ public class ReportService {
     @Transactional
     public ReportResponse create(CreateReportRequest request) {
         userService.validateContact(request.reporterContact());
+        String category = blankToNull(request.itemCategory());
+        if (category != null && !Categories.VALUES.contains(category)) {
+            throw new BadRequestException("Unknown category: " + category);
+        }
         User reporter = authSupport.requireUser();
 
         Item item = new Item(
                 UUID.randomUUID(),
                 request.itemName().trim(),
                 blankToNull(request.itemDescription()),
-                blankToNull(request.itemCategory())
+                category
         );
         itemRepository.save(item);
 

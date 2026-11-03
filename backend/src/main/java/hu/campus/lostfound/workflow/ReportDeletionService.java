@@ -3,6 +3,7 @@ package hu.campus.lostfound.workflow;
 import hu.campus.lostfound.auth.AuthSupport;
 import hu.campus.lostfound.claim.ClaimRepository;
 import hu.campus.lostfound.claim.ClaimStatus;
+import hu.campus.lostfound.notification.NotificationRepository;
 import hu.campus.lostfound.report.Item;
 import hu.campus.lostfound.report.ItemRepository;
 import hu.campus.lostfound.report.Report;
@@ -22,6 +23,7 @@ public class ReportDeletionService {
     private final ReportRepository reportRepository;
     private final ItemRepository itemRepository;
     private final ClaimRepository claimRepository;
+    private final NotificationRepository notificationRepository;
     private final AuthSupport authSupport;
     private final ReportAccess reportAccess;
 
@@ -30,6 +32,7 @@ public class ReportDeletionService {
             ReportRepository reportRepository,
             ItemRepository itemRepository,
             ClaimRepository claimRepository,
+            NotificationRepository notificationRepository,
             AuthSupport authSupport,
             ReportAccess reportAccess
     ) {
@@ -37,6 +40,7 @@ public class ReportDeletionService {
         this.reportRepository = reportRepository;
         this.itemRepository = itemRepository;
         this.claimRepository = claimRepository;
+        this.notificationRepository = notificationRepository;
         this.authSupport = authSupport;
         this.reportAccess = reportAccess;
     }
@@ -51,6 +55,7 @@ public class ReportDeletionService {
             throw new BadRequestException("Cannot delete a report with an approved claim");
         }
 
+        notificationRepository.deleteByReportId(reportId);
         claimRepository.deleteByReport_Id(reportId);
         Item item = report.getItem();
         reportRepository.delete(report);

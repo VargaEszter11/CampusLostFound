@@ -74,6 +74,7 @@ export function ReportRow({ report, summary, isOwner, onSelect, onDeleted }: Pro
             →
           </span>
           {isOwner &&
+            !summary.inProgress &&
             (confirming ? (
               <div className="flex items-center gap-1">
                 <button

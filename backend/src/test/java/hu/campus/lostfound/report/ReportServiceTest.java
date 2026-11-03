@@ -100,6 +100,19 @@ class ReportServiceTest {
     }
 
     @Test
+    void createRejectsCategoryOutsideTheFixedList() {
+        CreateReportRequest request = new CreateReportRequest(
+                ReportType.LOST, "Blue backpack", null, "Nonsense", "Lecture hall B", LocalDate.now(), "anna@example.com"
+        );
+
+        assertThatThrownBy(() -> reportService.create(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Unknown category: Nonsense");
+
+        verifyNoInteractions(itemRepository, reportRepository);
+    }
+
+    @Test
     void closeByOwnerClosesReport() {
         User reporter = user();
         Report report = report(reporter);

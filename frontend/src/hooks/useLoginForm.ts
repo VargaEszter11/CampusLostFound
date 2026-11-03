@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { login, register } from '../services/authService'
+import { isValidEmail } from '../domain/contactValidation'
 import { DEMO_PASSWORD, DEMO_USERS } from '../domain/demoUsers'
 import type { AuthSession } from '../session/session'
 import { setSession } from '../session/session'
@@ -33,6 +34,9 @@ export function useLoginForm(onLogin: (session: AuthSession) => void) {
     }
     if (!email.trim()) {
       setEmailError('Email is required')
+      ok = false
+    } else if (!isValidEmail(email)) {
+      setEmailError('Enter a valid email address')
       ok = false
     }
     if (!password) {

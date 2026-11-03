@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { CATEGORIES } from '../domain/categories'
-import { formatDate } from '../domain/format'
+import { formatDate, formatDateTime } from '../domain/format'
 import type { AdminReport, ReportStatus, ReportType } from '../domain/types'
 import { useAdminReports } from '../hooks/useAdminReports'
 
@@ -154,7 +154,7 @@ function AdminReportRow({ report: r }: { readonly report: AdminReport }) {
           label="Claims"
           value={r.pendingClaimCount > 0 ? `${r.claimCount} (${r.pendingClaimCount} pending)` : String(r.claimCount)}
         />
-        <Field label="Reported" value={new Date(r.createdAt).toLocaleString()} />
+        <Field label="Reported" value={formatDateTime(r.createdAt)} />
       </dl>
 
       {r.handover && (
@@ -167,7 +167,7 @@ function AdminReportRow({ report: r }: { readonly report: AdminReport }) {
           <p>
             Code: <span className="font-mono font-semibold">{r.handover.handoverCode}</span>
             {r.handover.confirmedAt && (
-              <span className="text-xs opacity-80"> · confirmed {new Date(r.handover.confirmedAt).toLocaleString()}</span>
+              <span className="text-xs opacity-80"> · confirmed {formatDateTime(r.handover.confirmedAt)}</span>
             )}
           </p>
         </div>

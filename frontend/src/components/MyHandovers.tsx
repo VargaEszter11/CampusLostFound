@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { HandoverListItem } from '../domain/types'
+import { formatDateTime } from '../domain/format'
 import { useMyHandovers } from '../hooks/useMyHandovers'
+import { ConfirmHandoverButton } from './ConfirmHandoverButton'
 
 interface Props {
   readonly focusHandoverId?: string | null
@@ -124,14 +126,10 @@ function HandoverListItemRow({
             </>
           )}
         </p>
-        {h.confirmed && h.date && <p className="text-xs opacity-80">Confirmed {new Date(h.date).toLocaleString()}</p>}
+        {h.confirmed && h.date && <p className="text-xs opacity-80">Confirmed {formatDateTime(h.date)}</p>}
       </div>
 
-      {h.yourRole === 'REPORTER' && !h.confirmed && (
-        <button type="button" onClick={() => confirm(h.id)} className="btn-primary mt-3">
-          Mark as handed over
-        </button>
-      )}
+      {!h.confirmed && <ConfirmHandoverButton onConfirm={() => confirm(h.id)} className="mt-3" />}
     </li>
   )
 }

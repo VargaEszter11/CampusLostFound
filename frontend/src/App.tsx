@@ -6,12 +6,11 @@ import { LoginScreen } from './components/LoginScreen'
 import { MyClaims } from './components/MyClaims'
 import { MyHandovers } from './components/MyHandovers'
 import { ReportForm } from './components/ReportForm'
-import { ReportList, type ReportFilter } from './components/ReportList'
+import { ReportList, ReportListHeading, type ReportFilter } from './components/ReportList'
 import { useAppNavigation } from './hooks/useAppNavigation'
 import { useHashRoute } from './hooks/useHashRoute'
 import { useOpenReports } from './hooks/useOpenReports'
 import { useSession } from './hooks/useSession'
-import { isOwnerOf } from './domain/rules'
 import type { AuthSession } from './session/session'
 
 function App() {
@@ -59,13 +58,13 @@ interface DashboardProps {
 
 function Dashboard({ session, onSignOut, onOpenAdmin }: DashboardProps) {
   const { openReports, loading, error, refresh } = useOpenReports(session, onSignOut)
-  const { tab, setTab, focus, focusedReport, selectTab, navigateTo } = useAppNavigation(session.userId, refresh)
+  const { tab, setTab, focus, focusedReport, navigationNotice, selectTab, navigateTo } = useAppNavigation(
+    session.userId,
+    refresh,
+  )
   const [filter, setFilter] = useState<ReportFilter>('ALL')
 
   const currentUser = session.displayName
-  const otherOpenCount = openReports.filter((r) => !isOwnerOf(r, session.userId)).length
-  const myOpenCount = openReports.filter((r) => isOwnerOf(r, session.userId)).length
-  const headerCount = filter === 'MINE' ? myOpenCount : otherOpenCount
 
   return (
     <div className="app-shell">
@@ -96,15 +95,13 @@ function Dashboard({ session, onSignOut, onOpenAdmin }: DashboardProps) {
 
         {tab === 'OPEN_REPORTS' && (
           <div key="open" className="panel-enter mt-8">
-            <div className="mb-5 flex items-end justify-between gap-3">
-              <h2 className="brand-display text-2xl text-ink">Open reports</h2>
-              <span className="rounded bg-teal-soft px-2.5 py-1 text-xs font-semibold text-teal">
-                {headerCount} {headerCount === 1 ? 'report' : 'reports'}
-              </span>
-            </div>
+            {navigationNotice && <p className="mb-4 text-sm text-ink-muted">{navigationNotice}</p>}
             {error && <p className="mb-4 text-sm text-danger">{error}</p>}
             {loading && openReports.length === 0 ? (
-              <p className="text-ink-faint">Loading reports…</p>
+              <>
+                <ReportListHeading />
+                <p className="text-ink-faint">Loading reports…</p>
+              </>
             ) : (
               <ReportList
                 key={focus?.key ?? 'list'}

@@ -31,6 +31,8 @@ services:
       SPRING_DATASOURCE_USERNAME: campus
       SPRING_DATASOURCE_PASSWORD: campus
       SERVER_PORT: "8080"
+
+      TZ: Europe/Budapest
     depends_on:
       db:
         condition: service_healthy

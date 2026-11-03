@@ -1,4 +1,5 @@
 import type { Handover } from '../domain/types'
+import { ConfirmHandoverButton } from './ConfirmHandoverButton'
 
 interface Props {
   readonly handover: Handover | undefined
@@ -30,11 +31,7 @@ export function HandoverPanel({ handover, approvedClaimContact, isOwner, onConfi
         </p>
       </div>
       {isOwner && approvedClaimContact && <p className="text-sm">{approvedClaimContact}</p>}
-      {isOwner && (
-        <button type="button" onClick={onConfirm} className="btn-primary">
-          Mark as handed over
-        </button>
-      )}
+      {isOwner && <ConfirmHandoverButton onConfirm={onConfirm} />}
     </div>
   )
 }

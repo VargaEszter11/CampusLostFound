@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import hu.campus.lostfound.auth.AuthSupport;
 import hu.campus.lostfound.claim.ClaimRepository;
 import hu.campus.lostfound.claim.ClaimStatus;
+import hu.campus.lostfound.notification.NotificationRepository;
 import hu.campus.lostfound.report.Item;
 import hu.campus.lostfound.report.ItemRepository;
 import hu.campus.lostfound.report.Report;
@@ -41,6 +42,8 @@ class ReportDeletionServiceTest {
     @Mock
     private ClaimRepository claimRepository;
     @Mock
+    private NotificationRepository notificationRepository;
+    @Mock
     private AuthSupport authSupport;
 
     private ReportDeletionService reportDeletionService;
@@ -50,7 +53,8 @@ class ReportDeletionServiceTest {
     @BeforeEach
     void setUp() {
         reportDeletionService = new ReportDeletionService(
-                reportService, reportRepository, itemRepository, claimRepository, authSupport, new ReportAccess()
+                reportService, reportRepository, itemRepository, claimRepository, notificationRepository, authSupport,
+                new ReportAccess()
         );
     }
 
@@ -63,6 +67,7 @@ class ReportDeletionServiceTest {
 
         reportDeletionService.delete(report.getId());
 
+        verify(notificationRepository).deleteByReportId(report.getId());
         verify(claimRepository).deleteByReport_Id(report.getId());
         verify(reportRepository).delete(report);
         verify(itemRepository).delete(report.getItem());

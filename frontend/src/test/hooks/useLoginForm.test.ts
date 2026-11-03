@@ -59,6 +59,20 @@ describe('useLoginForm', () => {
     expect(registerMock).not.toHaveBeenCalled()
   })
 
+  it('rejects a malformed email before calling the API', async () => {
+    const { result } = renderHook(() => useLoginForm(vi.fn()))
+
+    act(() => result.current.switchMode('register'))
+    act(() => result.current.onDisplayNameChange('Anna Kiss'))
+    act(() => result.current.onEmailChange('not-an-email'))
+    act(() => result.current.onPasswordChange('secret123'))
+
+    await act(async () => result.current.submit())
+
+    expect(result.current.emailError).toBe('Enter a valid email address')
+    expect(registerMock).not.toHaveBeenCalled()
+  })
+
   it('logs in with trimmed email and the entered password', async () => {
     loginMock.mockResolvedValue(session)
     const onLogin = vi.fn()

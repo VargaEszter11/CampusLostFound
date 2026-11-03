@@ -34,28 +34,18 @@ export function useReportForm(defaultContact: string, onCreated: () => void) {
   }
 
   function validate(): boolean {
-    if (itemName.trim() === '') {
-      setItemNameErrorMsg('Item name is required')
-      return false
-    }
-    if (location.trim() === '') {
-      setLocationErrorMsg('Location is required')
-      return false
-    }
-    if (date === '') {
-      setDateErrorMsg('Date is required')
-      return false
-    }
-    if (date > todayIso()) {
-      setDateErrorMsg('Date cannot be in the future')
-      return false
-    }
-    const error = contactError(reporterContact)
-    if (error) {
-      setContactErrorMsg(error)
-      return false
-    }
-    return true
+    const nameError = itemName.trim() === '' ? 'Item name is required' : undefined
+    const locationError = location.trim() === '' ? 'Location is required' : undefined
+    let dateError: string | undefined
+    if (date === '') dateError = 'Date is required'
+    else if (date > todayIso()) dateError = 'Date cannot be in the future'
+    const contactErrorMessage = contactError(reporterContact)
+
+    setItemNameErrorMsg(nameError)
+    setLocationErrorMsg(locationError)
+    setDateErrorMsg(dateError)
+    setContactErrorMsg(contactErrorMessage)
+    return !nameError && !locationError && !dateError && !contactErrorMessage
   }
 
   function submit() {

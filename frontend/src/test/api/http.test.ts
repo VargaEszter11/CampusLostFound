@@ -29,6 +29,15 @@ describe('throwIfNotOk', () => {
     await expect(throwIfNotOk(res)).rejects.toThrow('must not be blank, must not be blank')
   })
 
+  it('prefers the field messages over the generic "Validation failed" error', async () => {
+    const res = new Response(
+      JSON.stringify({ error: 'Validation failed', fields: { email: 'must be a well-formed email address' } }),
+      { status: 400 },
+    )
+
+    await expect(throwIfNotOk(res)).rejects.toThrow('must be a well-formed email address')
+  })
+
   it('falls back to a status-based message when the body is not JSON', async () => {
     const res = new Response('not json', { status: 503 })
 

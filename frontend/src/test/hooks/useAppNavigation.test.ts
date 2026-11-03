@@ -105,4 +105,19 @@ describe('useAppNavigation', () => {
     expect(result.current.tab).toBe('MY_CLAIMS')
     expect(result.current.focusedReport).toBeNull()
   })
+
+  it('navigateTo a deleted report shows a notice, which clears on the next tab switch', async () => {
+    getReportMock.mockResolvedValue(undefined)
+    const { result } = renderHook(() => useAppNavigation('user-1', vi.fn()))
+
+    await act(async () =>
+      result.current.navigateTo({ tab: 'OPEN_REPORTS', reportId: 'gone', claimId: null, handoverId: null }),
+    )
+
+    expect(result.current.focusedReport).toBeNull()
+    expect(result.current.navigationNotice).toMatch(/no longer exists/)
+
+    act(() => result.current.selectTab('MY_CLAIMS'))
+    expect(result.current.navigationNotice).toBeNull()
+  })
 })

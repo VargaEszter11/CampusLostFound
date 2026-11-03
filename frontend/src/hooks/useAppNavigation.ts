@@ -22,6 +22,7 @@ export function useAppNavigation(userId: string, onOpenReports: () => void) {
   const [tab, setTabState] = useState<Tab>(() => readStoredTab(userId))
   const [focus, setFocus] = useState<Focus | null>(null)
   const [focusedReport, setFocusedReport] = useState<Report | null>(null)
+  const [navigationNotice, setNavigationNotice] = useState<string | null>(null)
 
   function setTab(next: Tab) {
     setTabState(next)
@@ -31,17 +32,19 @@ export function useAppNavigation(userId: string, onOpenReports: () => void) {
   function selectTab(next: Tab) {
     setTab(next)
     setFocus(null)
+    setNavigationNotice(null)
     if (next === 'OPEN_REPORTS') onOpenReports()
   }
 
   async function navigateTo(target: NotificationTarget) {
-    const report =
-      target.tab === 'OPEN_REPORTS' && target.reportId ? await getReport(target.reportId) : undefined
+    const opensReport = target.tab === 'OPEN_REPORTS' && Boolean(target.reportId)
+    const report = opensReport && target.reportId ? await getReport(target.reportId) : undefined
     setFocusedReport(report ?? null)
+    setNavigationNotice(opensReport && !report ? 'This report no longer exists — it was deleted by its reporter.' : null)
     setTab(target.tab)
     setFocus({ ...target, key: Date.now() })
     if (target.tab === 'OPEN_REPORTS') onOpenReports()
   }
 
-  return { tab, setTab, focus, focusedReport, selectTab, navigateTo }
+  return { tab, setTab, focus, focusedReport, navigationNotice, selectTab, navigateTo }
 }

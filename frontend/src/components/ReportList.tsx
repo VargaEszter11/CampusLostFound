@@ -20,6 +20,19 @@ interface Props {
   readonly initialSelected?: Report | null
 }
 
+export function ReportListHeading({ count }: { readonly count?: number }) {
+  return (
+    <div className="mb-5 flex items-end justify-between gap-3">
+      <h2 className="brand-display text-2xl text-ink">Open reports</h2>
+      {count !== undefined && (
+        <span className="rounded bg-teal-soft px-2.5 py-1 text-xs font-semibold text-teal">
+          {count} {count === 1 ? 'report' : 'reports'}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function emptyMessage(filter: ReportFilter, reports: Report[], currentUserId: string): string {
   const hasOwn = reports.some((r) => isOwnerOf(r, currentUserId))
   const hasOthers = reports.some((r) => !isOwnerOf(r, currentUserId))
@@ -45,6 +58,7 @@ export function ReportList({
 
   return (
     <div>
+      <ReportListHeading count={criteria.filtered.length} />
       <ReportFilters
         filter={filter}
         onFilterChange={onFilterChange}

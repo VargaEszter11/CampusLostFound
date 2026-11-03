@@ -28,7 +28,7 @@ A Campus Lost & Found egy egyetemi elveszett tárgyak rendszer, amelynek célja,
 - kategória-javaslat LLM-mel (DeepSeek API): a tárgy nevének/leírásának begépelése után automatikusan (rövid késleltetéssel) javaslatot ad a kategóriára egy rögzített kategórialistából; a felhasználó elfogadhatja vagy felülírhatja egy másik kategóriával; ha a szolgáltatás nincs beállítva a szerveren, vagy a hívás meghiúsul, a mező egyszerűen kézi kitöltésre vár (a bejelentés létrehozása ettől nem akadályozott);
 - saját bejelentés törlése — csak akkor engedélyezett, ha a bejelentésnek még nincs jóváhagyott igénylése;
 - **admin nézet**: a `app.admin.emails` listában szereplő e-mail-címmel bejelentkezett felhasználók egy külön admin API-n keresztül az összes bejelentést látják — a bejelentő teljes nevével és elérhetőségével (a normál elrejtési szabály nélkül), az igénylések számával (összes/függő), és az esetleges átadás részleteivel (igénylő adatai, átadási kód, megerősítés állapota); ez jelenleg csak megtekintési (read-only) nézet, törlés/szerkesztés admin jogon nincs;
-- automatizált tesztek: backend (JUnit + Mockito, 98 teszt) és frontend (Vitest + React Testing Library, 88 teszt), mindkettő a forráskóddal megegyező mappaszerkezetben, valódi hálózati hívás nélkül.
+- automatizált tesztek: backend (JUnit + Mockito, 103 teszt) és frontend (Vitest + React Testing Library, 97 teszt), mindkettő a forráskóddal megegyező mappaszerkezetben, valódi hálózati hívás nélkül.
 
 ## Fő felületi elemek
 
@@ -53,6 +53,9 @@ A backend egy központi hibakezelőn (`ApiExceptionHandler`) keresztül, egység
   - jóváhagyott igénylésű bejelentés törlésének kísérlete;
   - már megerősített átadás ismételt megerősítése;
   - érvénytelen regisztrációs adatok (pl. foglalt e-mail);
+  - ugyanarra a bejelentésre már van a felhasználónak függő igénylése;
+  - a fix listán kívüli kategória;
+  - hibás JSON-törzs vagy rossz típusú paraméter (pl. érvénytelen azonosító);
   - kategória-javaslat kérése, amikor a DeepSeek API nincs beállítva a szerveren, vagy a hívás meghiúsul.
 - **403 Forbidden** — jogosultsági hiba:
   - nem a bejelentő próbálja lezárni, törölni, vagy egy igénylést jóváhagyni/elutasítani a bejelentésen;
