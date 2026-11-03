@@ -20,9 +20,11 @@ const apiReport = {
   item: { id: 'i1', name: 'Black wallet', description: null, category: null },
   location: 'Main hall',
   date: '2026-10-05',
+  reporterId: 'u-anna',
   reporterName: 'Anna Kiss',
   reporterContact: null,
   status: 'OPEN',
+  awaitingHandover: false,
   createdAt: '2026-10-01T00:00:00Z',
 }
 

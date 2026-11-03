@@ -18,10 +18,12 @@ export function ClaimsPanel({ claims, onApprove, onReject }: Props) {
           {claims.map((c) => (
             <li
               key={c.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-line bg-paper px-3 py-2"
+              className="flex items-start justify-between gap-3 rounded-lg border border-line bg-paper px-3 py-2"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-ink">{c.claimantName}</p>
+                <p className="text-xs break-words text-ink-faint">{c.claimantContact}</p>
+                {c.reason && <p className="mt-1 text-sm break-words text-ink-muted">“{c.reason}”</p>}
                 {!isPending(c) && (
                   <p className="text-xs text-ink-faint">{isApproved(c) ? 'Approved' : 'Rejected'}</p>
                 )}

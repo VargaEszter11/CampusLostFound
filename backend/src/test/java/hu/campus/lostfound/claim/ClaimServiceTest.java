@@ -113,6 +113,22 @@ class ClaimServiceTest {
     }
 
     @Test
+    void createRejectsSecondPendingClaimFromSameUser() {
+        Report report = openReport();
+        when(authSupport.requireUser()).thenReturn(claimant);
+        when(reportService.requireReport(report.getId())).thenReturn(report);
+        when(claimRepository.existsByReport_IdAndStatus(report.getId(), ClaimStatus.APPROVED)).thenReturn(false);
+        when(claimRepository.existsByReport_IdAndClaimant_IdAndStatus(
+                report.getId(), claimant.getId(), ClaimStatus.PENDING)).thenReturn(true);
+        CreateClaimRequest request = new CreateClaimRequest(report.getId(), "bence@example.com", null);
+
+        assertThatThrownBy(() -> claimService.create(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("You already have a pending claim on this report");
+        verify(claimRepository, never()).save(any());
+    }
+
+    @Test
     void rejectByOwnerRejectsClaimAndNotifiesClaimant() {
         Report report = openReport();
         Claim claim = pendingClaim(report);

@@ -11,15 +11,21 @@ public final class ReportMapper {
     }
 
     public static ReportResponse toResponse(Report report, boolean revealContact) {
+        return toResponse(report, revealContact, false);
+    }
+
+    public static ReportResponse toResponse(Report report, boolean revealContact, boolean awaitingHandover) {
         return new ReportResponse(
                 report.getId(),
                 report.getType(),
                 toItemResponse(report.getItem()),
                 report.getLocation(),
                 report.getOccurredOn(),
+                report.getReporter().getId(),
                 report.getReporter().getDisplayName(),
                 revealContact ? report.getReporterContact() : null,
                 report.getStatus(),
+                awaitingHandover,
                 report.getCreatedAt()
         );
     }

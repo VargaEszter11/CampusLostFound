@@ -14,7 +14,7 @@ function matchesSearch(r: Report, search: string): boolean {
     .some((field) => field.toLowerCase().includes(term))
 }
 
-export function useReportFilters(reports: Report[], filter: ReportFilter, currentUser: string) {
+export function useReportFilters(reports: Report[], filter: ReportFilter, currentUserId: string) {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<CategoryFilter>('ALL')
   const [dateFrom, setDateFrom] = useState('')
@@ -22,7 +22,7 @@ export function useReportFilters(reports: Report[], filter: ReportFilter, curren
 
   const filtered = reports
     .filter((r) => {
-      const isMine = isOwnerOf(r, currentUser)
+      const isMine = isOwnerOf(r, currentUserId)
       if (filter === 'MINE') return isMine
       if (isMine) return false
       return filter === 'ALL' || r.type === filter

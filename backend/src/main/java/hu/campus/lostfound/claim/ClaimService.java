@@ -78,6 +78,10 @@ public class ClaimService {
         if (reportAccess.isReporter(report, claimant.getId())) {
             throw new BadRequestException("You cannot claim your own report");
         }
+        if (claimRepository.existsByReport_IdAndClaimant_IdAndStatus(
+                report.getId(), claimant.getId(), ClaimStatus.PENDING)) {
+            throw new BadRequestException("You already have a pending claim on this report");
+        }
 
         Claim claim = new Claim(
                 UUID.randomUUID(),

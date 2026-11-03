@@ -30,7 +30,8 @@ export async function getMyClaims(): Promise<Claim[]> {
 
 export async function getHandoverForReport(reportId: string): Promise<Handover | undefined> {
   const res = await apiFetch(`/api/reports/${reportId}/handover`)
-  if (res.status === 404) return undefined
+  // 403: a handover exists, but the viewer is neither its reporter nor its claimant
+  if (res.status === 404 || res.status === 403) return undefined
   await throwIfNotOk(res)
   return mapHandover((await res.json()) as ApiHandover)
 }

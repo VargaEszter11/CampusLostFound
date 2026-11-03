@@ -13,12 +13,20 @@ interface Props {
   readonly onClose: () => void
   readonly onReportChanged?: () => void
   readonly currentUser: string
+  readonly currentUserId: string
   readonly currentUserEmail?: string
 }
 
-export function ReportDetailsModal({ report, onClose, onReportChanged, currentUser, currentUserEmail }: Props) {
+export function ReportDetailsModal({
+  report,
+  onClose,
+  onReportChanged,
+  currentUser,
+  currentUserId,
+  currentUserEmail,
+}: Props) {
   const { dialogRef, handleClose } = useModalDialog(onClose)
-  const isOwner = isOwnerOf(report, currentUser)
+  const isOwner = isOwnerOf(report, currentUserId)
   const { claims, handover, loading, error, approve, reject, confirm, afterChange } = useReportClaims(
     report.id,
     isOwner,
@@ -94,7 +102,13 @@ export function ReportDetailsModal({ report, onClose, onReportChanged, currentUs
         <ClaimsPanel claims={claims} onApprove={approve} onReject={reject} />
       )}
 
-      {!isClosed && !handover && !loading && !isOwner && (
+      {!isClosed && !handover && !loading && !isOwner && report.awaitingHandover && (
+        <p className="mt-5 border-t border-line pt-5 text-sm text-ink-faint">
+          A claim on this item was approved and is waiting to be handed over, so no new claims can be submitted.
+        </p>
+      )}
+
+      {!isClosed && !handover && !loading && !isOwner && !report.awaitingHandover && (
         <ClaimAction
           reportId={report.id}
           reportType={report.type}
@@ -106,7 +120,7 @@ export function ReportDetailsModal({ report, onClose, onReportChanged, currentUs
         />
       )}
 
-      {isOwner && (
+      {isOwner && !handover && (
         <DeleteReportAction
           reportId={report.id}
           onDeleted={() => {

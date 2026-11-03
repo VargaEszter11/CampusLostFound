@@ -16,9 +16,11 @@ const report: Report = {
   item: { id: 'i1' as ItemId, name: 'Black wallet' },
   location: 'Main hall',
   date: '2026-10-05',
+  reporterId: 'u-anna',
   reporterName: 'Anna Kiss',
   reporterContact: 'anna@example.com',
   status: 'OPEN',
+  awaitingHandover: false,
   createdAt: '2026-10-01T00:00:00Z',
 }
 

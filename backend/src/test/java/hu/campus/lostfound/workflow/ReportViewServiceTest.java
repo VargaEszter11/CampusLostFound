@@ -20,6 +20,7 @@ import hu.campus.lostfound.user.User;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,6 +106,23 @@ class ReportViewServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).reporterContact()).isEqualTo("anna@example.com");
         assertThat(result.get(1).reporterContact()).isNull();
+        assertThat(result.get(0).reporterId()).isEqualTo(reporter.getId());
+        assertThat(result.get(1).reporterId()).isEqualTo(stranger.getId());
+    }
+
+    @Test
+    void listFlagsReportsAwaitingHandover() {
+        Report awaiting = reportBy(stranger);
+        Report free = reportBy(stranger);
+        when(authSupport.requireUserId()).thenReturn(reporter.getId());
+        when(reportRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(awaiting, free));
+        when(handoverRepository.findByParticipantId(reporter.getId())).thenReturn(List.of());
+        when(handoverRepository.findReportIdsAwaitingHandover()).thenReturn(Set.of(awaiting.getId()));
+
+        List<ReportResponse> result = reportViewService.list(null);
+
+        assertThat(result.get(0).awaitingHandover()).isTrue();
+        assertThat(result.get(1).awaitingHandover()).isFalse();
     }
 
     private Report openReport() {

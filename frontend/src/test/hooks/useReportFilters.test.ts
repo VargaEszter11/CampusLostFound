@@ -10,40 +10,42 @@ function report(overrides: Partial<Report>): Report {
     item: { id: 'i1' as ItemId, name: 'Black wallet', category: 'Other' },
     location: 'Main hall',
     date: '2026-10-05',
+    reporterId: 'u-anna',
     reporterName: 'Anna Kiss',
     reporterContact: 'anna@example.com',
     status: 'OPEN',
+    awaitingHandover: false,
     createdAt: '2026-10-01T00:00:00Z',
     ...overrides,
   }
 }
 
 describe('useReportFilters', () => {
-  const own = report({ id: 'own', reporterName: 'Anna Kiss' })
-  const lost = report({ id: 'lost', type: 'LOST', reporterName: 'Bence Toth' })
-  const found = report({ id: 'found', type: 'FOUND', reporterName: 'Csenge Nagy' })
+  const own = report({ id: 'own', reporterId: 'u-anna' })
+  const lost = report({ id: 'lost', type: 'LOST', reporterId: 'u-bence', reporterName: 'Bence Toth' })
+  const found = report({ id: 'found', type: 'FOUND', reporterId: 'u-csenge', reporterName: 'Csenge Nagy' })
   const reports = [own, lost, found]
 
   it('MINE shows only the current user\'s reports', () => {
-    const { result } = renderHook(() => useReportFilters(reports, 'MINE', 'Anna Kiss'))
+    const { result } = renderHook(() => useReportFilters(reports, 'MINE', 'u-anna'))
 
     expect(result.current.filtered.map((r) => r.id)).toEqual(['own'])
   })
 
   it('ALL, LOST and FOUND never include the current user\'s own reports', () => {
-    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'Anna Kiss'))
+    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'u-anna'))
 
     expect(result.current.filtered.map((r) => r.id).sort()).toEqual(['found', 'lost'])
   })
 
   it('LOST filters to lost reports from others', () => {
-    const { result } = renderHook(() => useReportFilters(reports, 'LOST', 'Anna Kiss'))
+    const { result } = renderHook(() => useReportFilters(reports, 'LOST', 'u-anna'))
 
     expect(result.current.filtered.map((r) => r.id)).toEqual(['lost'])
   })
 
   it('search matches item name, location and reporter name', () => {
-    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'Anna Kiss'))
+    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'u-anna'))
 
     act(() => result.current.setSearch('bence'))
 
@@ -51,9 +53,9 @@ describe('useReportFilters', () => {
   })
 
   it('date range excludes reports outside it', () => {
-    const early = report({ id: 'early', type: 'LOST', date: '2026-09-01', reporterName: 'Bence Toth' })
-    const late = report({ id: 'late', type: 'LOST', date: '2026-11-01', reporterName: 'Bence Toth' })
-    const { result } = renderHook(() => useReportFilters([early, late], 'LOST', 'Anna Kiss'))
+    const early = report({ id: 'early', type: 'LOST', date: '2026-09-01', reporterId: 'u-bence', reporterName: 'Bence Toth' })
+    const late = report({ id: 'late', type: 'LOST', date: '2026-11-01', reporterId: 'u-bence', reporterName: 'Bence Toth' })
+    const { result } = renderHook(() => useReportFilters([early, late], 'LOST', 'u-anna'))
 
     act(() => result.current.changeDateFrom('2026-10-01'))
     act(() => result.current.changeDateTo('2026-10-31'))
@@ -62,7 +64,7 @@ describe('useReportFilters', () => {
   })
 
   it('changing dateFrom past the current dateTo pulls dateTo along with it', () => {
-    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'Anna Kiss'))
+    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'u-anna'))
 
     act(() => result.current.changeDateTo('2026-10-10'))
     act(() => result.current.changeDateFrom('2026-10-20'))
@@ -71,7 +73,7 @@ describe('useReportFilters', () => {
   })
 
   it('hasExtraFilters and clearExtraFilters reset category and dates', () => {
-    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'Anna Kiss'))
+    const { result } = renderHook(() => useReportFilters(reports, 'ALL', 'u-anna'))
 
     act(() => result.current.setCategory('Electronics'))
     expect(result.current.hasExtraFilters).toBe(true)

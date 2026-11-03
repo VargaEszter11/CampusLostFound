@@ -4,8 +4,8 @@ export function isSameUser(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase()
 }
 
-export function isOwnerOf(report: Report, userName: string): boolean {
-  return isSameUser(userName, report.reporterName)
+export function isOwnerOf(report: Report, userId: string): boolean {
+  return report.reporterId === userId
 }
 
 export function isReportClosed(report: Report): boolean {

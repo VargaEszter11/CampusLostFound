@@ -9,9 +9,11 @@ function report(overrides: Partial<Report> = {}): Report {
     item: { id: 'i1' as ItemId, name: 'Black wallet' },
     location: 'Main hall',
     date: '2026-10-01',
+    reporterId: 'u-anna',
     reporterName: 'Anna Kiss',
     reporterContact: 'anna@example.com',
     status: 'OPEN',
+    awaitingHandover: false,
     createdAt: '2026-10-01T00:00:00Z',
     ...overrides,
   }
@@ -40,11 +42,15 @@ describe('isSameUser', () => {
 
 describe('isOwnerOf', () => {
   it('is true when the user is the reporter', () => {
-    expect(isOwnerOf(report({ reporterName: 'Anna Kiss' }), 'Anna Kiss')).toBe(true)
+    expect(isOwnerOf(report({ reporterId: 'u-anna' }), 'u-anna')).toBe(true)
   })
 
   it('is false for a different user', () => {
-    expect(isOwnerOf(report({ reporterName: 'Anna Kiss' }), 'Bence Toth')).toBe(false)
+    expect(isOwnerOf(report({ reporterId: 'u-anna' }), 'u-bence')).toBe(false)
+  })
+
+  it('is false for a different user who has the same display name', () => {
+    expect(isOwnerOf(report({ reporterId: 'u-anna', reporterName: 'Anna Kiss' }), 'u-other-anna')).toBe(false)
   })
 })
 

@@ -63,8 +63,8 @@ function Dashboard({ session, onSignOut, onOpenAdmin }: DashboardProps) {
   const [filter, setFilter] = useState<ReportFilter>('ALL')
 
   const currentUser = session.displayName
-  const otherOpenCount = openReports.filter((r) => !isOwnerOf(r, currentUser)).length
-  const myOpenCount = openReports.filter((r) => isOwnerOf(r, currentUser)).length
+  const otherOpenCount = openReports.filter((r) => !isOwnerOf(r, session.userId)).length
+  const myOpenCount = openReports.filter((r) => isOwnerOf(r, session.userId)).length
   const headerCount = filter === 'MINE' ? myOpenCount : otherOpenCount
 
   return (
@@ -116,6 +116,7 @@ function Dashboard({ session, onSignOut, onOpenAdmin }: DashboardProps) {
                   void refresh()
                 }}
                 currentUser={currentUser}
+                currentUserId={session.userId}
                 currentUserEmail={session.email}
               />
             )}

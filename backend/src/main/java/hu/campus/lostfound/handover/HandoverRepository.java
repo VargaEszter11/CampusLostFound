@@ -3,6 +3,7 @@ package hu.campus.lostfound.handover;
 import hu.campus.lostfound.handover.Handover;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -49,6 +50,9 @@ public interface HandoverRepository extends JpaRepository<Handover, UUID> {
             order by c.createdAt desc
             """)
     List<Handover> findByParticipantId(@Param("userId") UUID userId);
+
+    @Query("select c.report.id from Handover h join h.claim c where h.confirmed = false")
+    Set<UUID> findReportIdsAwaitingHandover();
 
     @EntityGraph(attributePaths = {"claim", "claim.claimant", "claim.report"})
     List<Handover> findAllBy();

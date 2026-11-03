@@ -23,7 +23,6 @@ export function useReportClaims(reportId: string, isOwner: boolean, onChanged?: 
 
   useEffect(() => {
     let cancelled = false
-    setError(undefined)
     void load()
       .then(({ nextClaims, nextHandover }) => {
         if (cancelled) return

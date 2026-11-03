@@ -43,11 +43,16 @@ public class ReportViewService {
     public List<ReportResponse> list(ReportStatus status) {
         UUID viewerId = authSupport.requireUserId();
         Set<UUID> handoverReportIds = handoverReportIds(viewerId);
+        Set<UUID> awaitingHandoverIds = handoverRepository.findReportIdsAwaitingHandover();
         List<Report> reports = status == null
                 ? reportRepository.findAllByOrderByCreatedAtDesc()
                 : reportRepository.findByStatusOrderByCreatedAtDesc(status);
         return reports.stream()
-                .map(r -> ReportMapper.toResponse(r, canSeeContact(r, viewerId, handoverReportIds)))
+                .map(r -> ReportMapper.toResponse(
+                        r,
+                        canSeeContact(r, viewerId, handoverReportIds),
+                        awaitingHandoverIds.contains(r.getId())
+                ))
                 .toList();
     }
 
@@ -55,7 +60,12 @@ public class ReportViewService {
     public ReportResponse get(UUID id) {
         UUID viewerId = authSupport.requireUserId();
         Report report = reportService.requireReport(id);
-        return ReportMapper.toResponse(report, canSeeContact(report, viewerId, handoverReportIds(viewerId)));
+        boolean awaitingHandover = handoverRepository.findApprovedForReport(id)
+                .filter(h -> !h.isConfirmed())
+                .isPresent();
+        return ReportMapper.toResponse(
+                report, canSeeContact(report, viewerId, handoverReportIds(viewerId)), awaitingHandover
+        );
     }
 
     private Set<UUID> handoverReportIds(UUID viewerId) {

@@ -27,5 +27,7 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
 
     boolean existsByReport_IdAndStatus(UUID reportId, ClaimStatus status);
 
+    boolean existsByReport_IdAndClaimant_IdAndStatus(UUID reportId, UUID claimantId, ClaimStatus status);
+
     void deleteByReport_Id(UUID reportId);
 }

@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.core.MethodParameter;
 import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 class ApiExceptionHandlerTest {
 
@@ -59,6 +62,27 @@ class ApiExceptionHandlerTest {
         @SuppressWarnings("unchecked")
         Map<String, String> fields = (Map<String, String>) response.getBody().get("fields");
         assertThat(fields).containsEntry("itemName", "must not be blank");
+    }
+
+    @Test
+    void handleUnreadableBodyReturns400() {
+        ResponseEntity<Map<String, String>> response =
+                handler.handleUnreadableBody(mock(HttpMessageNotReadableException.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("error", "Malformed request body");
+    }
+
+    @Test
+    void handleTypeMismatchReturns400NamingTheParameter() {
+        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
+                "not-a-uuid", UUID.class, "id", mock(MethodParameter.class), new IllegalArgumentException()
+        );
+
+        ResponseEntity<Map<String, String>> response = handler.handleTypeMismatch(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("error", "Invalid value for 'id'");
     }
 
     @Test

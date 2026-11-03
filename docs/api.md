@@ -18,7 +18,7 @@ Bean-validation failures (`@Valid` body) additionally include a `fields` map:
 
 | Status | Meaning |
 |---|---|
-| 400 | Bad request — validation failure or a domain rule violation |
+| 400 | Bad request — validation failure, a domain rule violation, a malformed JSON body (`"Malformed request body"`), or a path/query value of the wrong type (`"Invalid value for 'id'"`) |
 | 401 | Missing/invalid JWT |
 | 403 | Authenticated, but not allowed to perform this action |
 | 404 | No entity with that id |
@@ -69,7 +69,8 @@ CORS is restricted to `http://localhost:5173` / `http://127.0.0.1:5173`.
 
 ## Reports — `/api/reports`
 
-`ReportResponse`: `{ id, type, item: { id, name, description, category }, location, date, reporterName, reporterContact, status, createdAt }`.
+`ReportResponse`: `{ id, type, item: { id, name, description, category }, location, date, reporterId, reporterName, reporterContact, status, awaitingHandover, createdAt }`.
+`reporterId` is what clients use to tell whether the viewer owns a report (display names are not unique). `awaitingHandover` is `true` while the report has an approved claim whose handover is not yet confirmed — no new claims are accepted then.
 `reporterContact` is **redacted to `null`** unless the viewer is the reporter, or a participant in a confirmed handover for that report.
 
 ### `GET /api/reports` — authenticated
@@ -148,7 +149,7 @@ CORS is restricted to `http://localhost:5173` / `http://127.0.0.1:5173`.
 
 **201 → `ClaimResponse`**. Notifies the reporter (`CLAIM_CREATED`).
 
-**Errors**: 400 validation/contact failures · 404 "Report not found: {reportId}" · 400 "This item was already handed over" (report not `OPEN`) · 400 "This report already has an approved claim" · 400 "You cannot claim your own report"
+**Errors**: 400 validation/contact failures · 404 "Report not found: {reportId}" · 400 "This item was already handed over" (report not `OPEN`) · 400 "This report already has an approved claim" · 400 "You cannot claim your own report" · 400 "You already have a pending claim on this report"
 
 ### `POST /api/claims/{id}/reject` — authenticated
 

@@ -17,9 +17,11 @@ export interface Report {
   item: Item
   location: string
   date: string
+  reporterId: string
   reporterName: string
   reporterContact: string | null
   status: ReportStatus
+  awaitingHandover: boolean
   createdAt: string
 }
 

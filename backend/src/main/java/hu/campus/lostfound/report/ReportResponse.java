@@ -12,9 +12,11 @@ public record ReportResponse(
         ItemResponse item,
         String location,
         LocalDate date,
+        UUID reporterId,
         String reporterName,
         String reporterContact,
         ReportStatus status,
+        boolean awaitingHandover,
         Instant createdAt
 ) {
 }

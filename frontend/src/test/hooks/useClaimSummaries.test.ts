@@ -10,16 +10,18 @@ vi.mock('../../services/claimStore', () => ({
 
 const getClaimsForReportMock = vi.mocked(getClaimsForReport)
 
-function report(id: string, reporterName: string): Report {
+function report(id: string, reporterId: string): Report {
   return {
     id,
     type: 'FOUND',
     item: { id: `${id}-item` as ItemId, name: 'Black wallet' },
     location: 'Main hall',
     date: '2026-10-05',
-    reporterName,
+    reporterId,
+    reporterName: 'Anna Kiss',
     reporterContact: 'anna@example.com',
     status: 'OPEN',
+    awaitingHandover: false,
     createdAt: '2026-10-01T00:00:00Z',
   }
 }
@@ -40,11 +42,11 @@ describe('useClaimSummaries', () => {
   })
 
   it('counts pending claims and flags an approved one as in progress, only for owned reports', async () => {
-    const own = report('own', 'Anna Kiss')
-    const others = report('others', 'Bence Toth')
+    const own = report('own', 'u-anna')
+    const others = report('others', 'u-bence')
     getClaimsForReportMock.mockResolvedValue([claim('PENDING'), claim('PENDING'), claim('APPROVED')])
 
-    const { result } = renderHook(() => useClaimSummaries([own, others], 'Anna Kiss'))
+    const { result } = renderHook(() => useClaimSummaries([own, others], 'u-anna'))
 
     await waitFor(() => expect(result.current.own).toBeDefined())
 
@@ -55,24 +57,24 @@ describe('useClaimSummaries', () => {
   })
 
   it('returns an empty map when the user owns nothing', async () => {
-    const others = report('others', 'Bence Toth')
+    const others = report('others', 'u-bence')
 
-    const { result } = renderHook(() => useClaimSummaries([others], 'Anna Kiss'))
+    const { result } = renderHook(() => useClaimSummaries([others], 'u-anna'))
 
     expect(result.current).toEqual({})
     expect(getClaimsForReportMock).not.toHaveBeenCalled()
   })
 
   it('resets to an empty map when a later load fails', async () => {
-    const own = report('own', 'Anna Kiss')
+    const own = report('own', 'u-anna')
     getClaimsForReportMock.mockResolvedValueOnce([claim('PENDING')])
     const { result, rerender } = renderHook(
-      ({ reports }) => useClaimSummaries(reports, 'Anna Kiss'),
+      ({ reports }) => useClaimSummaries(reports, 'u-anna'),
       { initialProps: { reports: [own] } },
     )
     await waitFor(() => expect(result.current.own).toEqual({ pending: 1, inProgress: false }))
 
-    const otherOwnReport = report('own-2', 'Anna Kiss')
+    const otherOwnReport = report('own-2', 'u-anna')
     getClaimsForReportMock.mockRejectedValueOnce(new Error('network error'))
     rerender({ reports: [otherOwnReport] })
 

@@ -10,12 +10,12 @@ export interface ClaimSummary {
 
 export const NO_CLAIMS: ClaimSummary = { pending: 0, inProgress: false }
 
-export function useClaimSummaries(reports: Report[], currentUser: string): Record<string, ClaimSummary> {
+export function useClaimSummaries(reports: Report[], currentUserId: string): Record<string, ClaimSummary> {
   const [summaryByReport, setSummaryByReport] = useState<Record<string, ClaimSummary>>({})
 
   useEffect(() => {
     let cancelled = false
-    const owned = reports.filter((r) => isOwnerOf(r, currentUser))
+    const owned = reports.filter((r) => isOwnerOf(r, currentUserId))
     if (owned.length === 0) return
 
     void Promise.all(
@@ -38,7 +38,7 @@ export function useClaimSummaries(reports: Report[], currentUser: string): Recor
     return () => {
       cancelled = true
     }
-  }, [reports, currentUser])
+  }, [reports, currentUserId])
 
   return summaryByReport
 }

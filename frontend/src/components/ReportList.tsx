@@ -15,13 +15,14 @@ interface Props {
   readonly onFilterChange: (filter: ReportFilter) => void
   readonly onReportChanged?: () => void
   readonly currentUser: string
+  readonly currentUserId: string
   readonly currentUserEmail?: string
   readonly initialSelected?: Report | null
 }
 
-function emptyMessage(filter: ReportFilter, reports: Report[], currentUser: string): string {
-  const hasOwn = reports.some((r) => isOwnerOf(r, currentUser))
-  const hasOthers = reports.some((r) => !isOwnerOf(r, currentUser))
+function emptyMessage(filter: ReportFilter, reports: Report[], currentUserId: string): string {
+  const hasOwn = reports.some((r) => isOwnerOf(r, currentUserId))
+  const hasOthers = reports.some((r) => !isOwnerOf(r, currentUserId))
   if (filter === 'MINE') {
     return hasOwn ? 'No reports match your filters.' : 'You have no open reports.'
   }
@@ -34,12 +35,13 @@ export function ReportList({
   onFilterChange,
   onReportChanged,
   currentUser,
+  currentUserId,
   currentUserEmail,
   initialSelected = null,
 }: Props) {
   const [selected, setSelected] = useState<Report | null>(initialSelected)
-  const summaryByReport = useClaimSummaries(reports, currentUser)
-  const criteria = useReportFilters(reports, filter, currentUser)
+  const summaryByReport = useClaimSummaries(reports, currentUserId)
+  const criteria = useReportFilters(reports, filter, currentUserId)
 
   return (
     <div>
@@ -59,7 +61,7 @@ export function ReportList({
       />
 
       {criteria.filtered.length === 0 ? (
-        <p className="mt-6 text-ink-faint">{emptyMessage(filter, reports, currentUser)}</p>
+        <p className="mt-6 text-ink-faint">{emptyMessage(filter, reports, currentUserId)}</p>
       ) : (
         <ul className="mt-2 border-t border-line">
           {criteria.filtered.map((r) => (
@@ -67,7 +69,7 @@ export function ReportList({
               key={r.id}
               report={r}
               summary={filter === 'MINE' ? (summaryByReport[r.id] ?? NO_CLAIMS) : NO_CLAIMS}
-              isOwner={isOwnerOf(r, currentUser)}
+              isOwner={isOwnerOf(r, currentUserId)}
               onSelect={() => setSelected(r)}
               onDeleted={() => onReportChanged?.()}
             />
@@ -81,6 +83,7 @@ export function ReportList({
           onClose={() => setSelected(null)}
           onReportChanged={onReportChanged}
           currentUser={currentUser}
+          currentUserId={currentUserId}
           currentUserEmail={currentUserEmail}
         />
       )}
