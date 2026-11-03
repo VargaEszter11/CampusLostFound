@@ -2,21 +2,9 @@
 
 Egyetemi elveszett tárgyak rendszere: bejelentheted, ha elvesztettél vagy találtál valamit, igényt nyújthatsz be egy egyező bejelentésre, és a megtaláló jóváhagyhatja az átadást.
 
-## Állapot
+Dokumentáció: [MVP](docs/mvp.md), [API](docs/api.md), [architektúra](docs/architecture.md), [todo](docs/todo.md), [PROMPTOK](docs/prompts.md).
 
-A négy fő use case API + PostgreSQL mögött fut:
-
-- **Tárgy bejelentése** — kész
-- **Bejelentés keresése** — kész (All / Lost / Found / My reports + kategória + dátumtartomány)
-- **Igénylés** — kész
-- **Átadás jóváhagyása** — kész (Handovers fül is)
-- **Bejelentkezés** — kész (e-mail + jelszó, Google Sign-In, JWT)
-- **Értesítések** — kész (in-app: claim / approve / reject / handover)
-- **Admin oldal** — kész (`#/admin`: minden bejelentés, a lezártak is, elérhetőségekkel, igénylésszámmal és átadási adatokkal)
-
-Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.md](docs/todo.md).
-
-### Hozzáférés-szabályok
+## Hozzáférés-szabályok
 
 - Egy bejelentés igényléslistáját és a jóváhagyás/elutasítás gombokat csak a bejelentés tulajdonosa látja.
 - A bejelentő elérhetősége (`reporterContact`) a szerveren is rejtve marad: csak a bejelentő és egy jóváhagyott átadás két résztvevője kapja meg a bejelentés adataiban; más felhasználónak `null`.
@@ -30,7 +18,8 @@ Részletes leírás: [docs/mvp.md](docs/mvp.md). Nyitott feladatok: [docs/todo.m
 
 - Frontend: React + TypeScript + Vite + Tailwind CSS
 - Backend: Java 21 + Spring Boot + Spring Security (JWT) + JPA + Flyway
-- Adatbázis: PostgreSQL (helyi telepítés vagy Neon — Docker nem kell)
+- Adatbázis: PostgreSQL (Docker, helyi telepítés vagy Neon)
+- AI kategóriajavaslat: DeepSeek API (opcionális, `DEEPSEEK_API_KEY`; nélküle a „Suggest with AI” gomb nem működik)
 
 ## Domain modell
 
@@ -48,7 +37,7 @@ Séma: [backend/src/main/resources/db/migration/V1__init.sql](backend/src/main/r
 Csak Docker kell (Java, Node és PostgreSQL nem):
 
 ```bash
-cp .env.example .env    # töltsd ki: GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, ADMIN_EMAILS
+cp .env.example .env    # töltsd ki: GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, ADMIN_EMAILS (opcionális: DEEPSEEK_API_KEY)
 docker compose up -d --build
 ```
 
@@ -71,22 +60,42 @@ Portok felülírhatók a `.env`-ben: `FRONTEND_HOST_PORT`, `BACKEND_HOST_PORT`, 
 Egyetlen `.env` fájl kell, a repó gyökerében — ezt olvassa a backend (`../.env`) és a frontend (Vite `envDir: '..'`) is:
 
 ```bash
-cp .env.example .env   # GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, SPRING_DATASOURCE_*, ADMIN_EMAILS
+cp .env.example .env   # GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_ID, SPRING_DATASOURCE_*, ADMIN_EMAILS, DEEPSEEK_API_KEY
 ```
+
+Előfeltételek: PostgreSQL 16+ (helyi vagy [Neon](https://neon.tech)), JDK 21+ (`winget install Microsoft.OpenJDK.21`), Maven 3.9+ (vagy a `./mvnw` wrapper), Node.js a frontendhez.
 
 ### 1. Adatbázis
 
-1. Telepíts PostgreSQL-t, vagy használj Neon projektet.
-2. Helyi DB: `psql -U postgres -f backend/create-db.sql`
+**Helyi PostgreSQL:** `psql -U postgres -f backend/create-db.sql` létrehozza a `campus` szerepkört és a `campus_lost_found` adatbázist. Alapértelmezett beállítások (`application.yml`): `localhost:5432`, adatbázis `campus_lost_found`, felhasználó/jelszó `campus` / `campus`. A compose `db` szolgáltatása is használható: `docker compose up -d db` (port `5434`, ez van a `.env.example`-ben).
+
+**Neon (felhő):** hozz létre projektet, és a kapcsolati adatokat add meg a `.env`-ben (vagy környezeti változóként):
+
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://ep-xxxx.region.aws.neon.tech/neondb?sslmode=require
+SPRING_DATASOURCE_USERNAME=...
+SPRING_DATASOURCE_PASSWORD=...
+```
+
+A migrációkat (`backend/src/main/resources/db/migration/`) a Flyway indításkor automatikusan lefuttatja; a Hibernate `ddl-auto` értéke `validate`, vagyis az entitásoknak egyezniük kell a sémával.
 
 ### 2. Backend
 
-```powershell
+A backendet a `backend/` mappából kell indítani (a `../.env`-et olvassa):
+
+```bash
 cd backend
-.\run.ps1
+mvn spring-boot:run   # vagy ./mvnw spring-boot:run
 ```
 
-Részletek és API: [backend/README.md](backend/README.md).
+Ha a shell régi Java 8-at talál, állítsd be a JDK 21-et (PowerShell):
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+```
+
+Ellenőrzés: `java -version` → 21. API: [docs/api.md](docs/api.md). Backend tesztek: `mvn test`.
 
 Demó felhasználók (jelszó mindháromnál `demo123`):
 
@@ -114,11 +123,16 @@ A Vite dev szerver a `/api` hívásokat a backendre proxyzza (lásd `frontend/vi
 - `npm run build` — típusellenőrzés és production build
 - `npm run preview` — production build előnézete
 - `npm run lint` — ESLint
+- `npm test` — Vitest tesztek (`npm run test:watch` figyelő módban)
 
 ## Projekt struktúra
 
 ```
 frontend/   React + Vite app
 backend/    Spring Boot + Flyway + JPA (+ create-db.sql)
-docs/       MVP leírás és todo
+docs/       MVP, API, architektúra, todo
 ```
+
+Backend csomagok (`backend/src/main/java/hu/campus/lostfound/`): `auth` (JWT, Spring Security, login/regisztráció/Google), `admin`, `category` (AI kategóriajavaslat), `notification`, `report` (Report + Item), `claim`, `handover`, `workflow` (jóváhagyás, átadás-lekérdezések, report nézetek, controllerek), `user`, `shared` (kivételek, CORS, hibakezelő).
+
+Flyway migrációk: `V1` séma, `V2` demó felhasználók, `V3` átadási kód típusjavítás, `V4` régi demó bejelentések törlése, `V5` demó jelszavak, `V6` Google Sign-In (`google_sub`), `V7` értesítések.
